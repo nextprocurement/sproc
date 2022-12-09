@@ -10,8 +10,8 @@ import pathlib
 import pandas as pd
 import numpy as np
 
-import dlsproc.xml
-import dlsproc.structure
+import sproc.xml
+import sproc.structure
 
 import fastcore.foundation
 
@@ -57,7 +57,7 @@ def homogenize_multivalued(df: pd.DataFrame) -> pd.DataFrame:
     res = df.copy()
     
     # for every column that is multivalued...
-    for col_name in dlsproc.structure.multivalued_columns(res):
+    for col_name in sproc.structure.multivalued_columns(res):
         
         # if the type of an element (index) is list, it's left as it is, otherwise a list is wrapped around it
         # res[col_name] = res[col_name].apply(lambda x: x if type(x) == list else [x])

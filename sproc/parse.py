@@ -9,8 +9,8 @@ import urllib.parse
 
 import pandas as pd
 
-import dlsproc.xml
-import dlsproc.hier
+import sproc.xml
+import sproc.hier
 
 # %% ../nbs/50_parse.ipynb 11
 domain_discriminative_columns_paths = [
@@ -22,7 +22,7 @@ domain_discriminative_columns_paths = [
 def domain(df: pd.DataFrame) -> pd.Series:
     
     # columns names from "path"s
-    columns = [dlsproc.hier.pad_col_levels(df, p) for p in domain_discriminative_columns_paths]
+    columns = [sproc.hier.pad_col_levels(df, p) for p in domain_discriminative_columns_paths]
     
     domains = df[columns].applymap(lambda x: urllib.parse.urlparse(x).netloc if pd.notna(x) else pd.NA)
     

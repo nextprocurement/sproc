@@ -11,11 +11,11 @@ import pathlib
 import yaml
 import pandas as pd
 
-import dlsproc.extend
-import dlsproc.hier
-import dlsproc.assemble
-import dlsproc.bundle
-import dlsproc.postprocess
+import sproc.extend
+import sproc.hier
+import sproc.assemble
+import sproc.bundle
+import sproc.postprocess
 
 # %% ../nbs/00_core.ipynb 8
 def cli_process_zip(args: list = None) -> None:
@@ -30,10 +30,10 @@ def cli_process_zip(args: list = None) -> None:
     output_file = pathlib.Path(command_line_arguments.output_file)
     assert output_file.suffix == '.parquet', 'a .parquet file was expected'
     
-    data_df, deleted_series = dlsproc.assemble.distilled_data_from_zip(command_line_arguments.zip_file.name)
+    data_df, deleted_series = sproc.assemble.distilled_data_from_zip(command_line_arguments.zip_file.name)
     
-    res = dlsproc.assemble.merge_deleted(data_df, deleted_series)
-    res = dlsproc.assemble.parquet_amenable(res)
+    res = sproc.assemble.merge_deleted(data_df, deleted_series)
+    res = sproc.assemble.parquet_amenable(res)
     
     res.to_parquet(output_file)
 
@@ -54,7 +54,7 @@ def cli_extend_parquet_with_zip(args: list = None) -> None:
     output_file = pathlib.Path(command_line_arguments.output_file)
     assert output_file.suffix == '.parquet', 'a .parquet file was expected'
     
-    dlsproc.extend.parquet_with_zip(history_file, zip_file, output_file)
+    sproc.extend.parquet_with_zip(history_file, zip_file, output_file)
 
 # %% ../nbs/00_core.ipynb 24
 def cli_rename_columns(args: list = None) -> None:
@@ -80,7 +80,7 @@ def cli_rename_columns(args: list = None) -> None:
         data_scheme = yaml.load(yaml_data, Loader=yaml.FullLoader)
         
     df = pd.read_parquet(hierarchical_file)
-    renamed_cols_df = dlsproc.hier.flatten_columns_names(df, data_scheme)
+    renamed_cols_df = sproc.hier.flatten_columns_names(df, data_scheme)
     
     renamed_cols_df.to_parquet(output_file)
 
@@ -104,19 +104,19 @@ def read_zips(files: list) -> pd.DataFrame:
         print(f'Processing "{f}"')
 
         # data is read from the above *zip* file, and `concatenate`d into a single `pd.DataFrame`...
-        df = dlsproc.bundle.read_zip(f, concatenate=True)
+        df = sproc.bundle.read_zip(f, concatenate=True)
 
         # ...which is re-structured with multiindexed columns
-        df = dlsproc.hier.flat_df_to_multiindexed_df(df)
+        df = sproc.hier.flat_df_to_multiindexed_df(df)
 
         # every ATOM inside the zip file also contains information (at the beginning) about deleted entries
-        deleted_series = dlsproc.bundle.read_deleted_zip(f)
+        deleted_series = sproc.bundle.read_deleted_zip(f)
 
         # if this is NOT the first iteration...
         if res_df is not None:
 
             # ...the new data is stacked
-            res_df = dlsproc.assemble.stack(res_df, df)
+            res_df = sproc.assemble.stack(res_df, df)
             res_deleted_series = pd.concat((res_deleted_series, deleted_series), axis=0)
 
         # ...if this is the first iteration
@@ -127,14 +127,14 @@ def read_zips(files: list) -> pd.DataFrame:
             res_deleted_series = deleted_series
             
     # some contracts show up more than once, and only the last update is to be kept
-    res_last_update_only_df = dlsproc.postprocess.keep_updates_only(res_df)
+    res_last_update_only_df = sproc.postprocess.keep_updates_only(res_df)
 
     # a new *deleted* `pd.Series` is built by dropping duplicates (again, only the last one is kept)
-    deduplicated_deleted_series = dlsproc.postprocess.deduplicate_deleted_series(res_deleted_series)
+    deduplicated_deleted_series = sproc.postprocess.deduplicate_deleted_series(res_deleted_series)
 
     # the *deleted* series is used to flag the appropriate entries in the "main" `pd.DataFrame`;
     # the result is "stateful" in the sense that we know the state of each entry (deleted -and, if so, when- or not)
-    stateful_df = dlsproc.assemble.merge_deleted(res_last_update_only_df, deduplicated_deleted_series)
+    stateful_df = sproc.assemble.merge_deleted(res_last_update_only_df, deduplicated_deleted_series)
     
     # the number of filled-in rows for column `deleted_on` should match the number of `id`s in `deduplicated_deleted_series` that show up in `stateful_df`
     assert stateful_df['deleted_on'].notna().sum() == len(set(stateful_df['id']) & set(deduplicated_deleted_series.index.get_level_values(1)))
@@ -158,7 +158,7 @@ def cli_read_zips(args: list = None) -> None:
     df = read_zips([f.name for f in command_line_arguments.input_files])
     
     # ...rearranged for saving in parquet format
-    parquet_df = dlsproc.assemble.parquet_amenable(df)
+    parquet_df = sproc.assemble.parquet_amenable(df)
     
     parquet_df.to_parquet(output_file)
     

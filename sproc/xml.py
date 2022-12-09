@@ -14,8 +14,8 @@ import numpy as np
 import pandas as pd
 from lxml import etree
 
-import dlsproc.structure
-import dlsproc.postprocess
+import sproc.structure
+import sproc.postprocess
 
 # %% ../nbs/10_xml.ipynb 13
 def get_namespaces(input_file: str | pathlib.Path, root_name: str = 'base') -> dict:
@@ -142,7 +142,7 @@ def entry_to_dict(entry: etree.Element, recursive: bool = True) -> dict:
             for k, v in sub_res.items():
                 
                 # the name of the new "key" is assembled from those of the parent and the child
-                key_name = f'{tag}{dlsproc.structure.nested_tags_separator}{k}'
+                key_name = f'{tag}{sproc.structure.nested_tags_separator}{k}'
                 
                 # assert key_name not in res, f'multiple values for {key_name}'                
                 # key_name = unique_name(key_name, res.keys()) # <-------------  a unique name
@@ -201,12 +201,12 @@ def to_curated_df(input_file: str | pathlib.Path) -> pd.DataFrame:
     
     """
     
-    return dlsproc.postprocess.typecast_columns(to_df(input_file))
+    return sproc.postprocess.typecast_columns(to_df(input_file))
 
 # %% ../nbs/10_xml.ipynb 86
 def columns_depth(df: pd.DataFrame) -> pd.Series:
 
-    n_nestings = df.columns.str.extractall(f'(\\S{dlsproc.structure.nested_tags_separator}\\S)')
+    n_nestings = df.columns.str.extractall(f'(\\S{sproc.structure.nested_tags_separator}\\S)')
     n_nestings.index.names = ['column', 'match']
     
     return n_nestings[0].groupby('column').size()

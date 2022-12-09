@@ -13,8 +13,8 @@ import numpy as np
 from lxml import etree
 import yaml
 
-import dlsproc.xml
-import dlsproc.structure
+import sproc.xml
+import sproc.structure
 
 # %% ../nbs/30_hierarchical.ipynb 24
 def flat_series_to_multiindexed_series(s: pd.Series) -> pd.Series:
@@ -23,7 +23,7 @@ def flat_series_to_multiindexed_series(s: pd.Series) -> pd.Series:
     values = []
     
     for i, v in s.iteritems():
-        index_paths.append(tuple(i.split(dlsproc.structure.nested_tags_separator)))
+        index_paths.append(tuple(i.split(sproc.structure.nested_tags_separator)))
         values.append(v)
         
     return pd.Series(values, index=pd.MultiIndex.from_tuples(index_paths))
@@ -48,7 +48,7 @@ def flat_df_to_multiindexed_df(input_df: pd.DataFrame) -> pd.DataFrame:
     """
     
     # every field becomes a `tuple`
-    fields = [tuple(c.split(dlsproc.structure.nested_tags_separator)) for c in input_df.columns]
+    fields = [tuple(c.split(sproc.structure.nested_tags_separator)) for c in input_df.columns]
     
     # the number of levels in the multindex for the columns
     n_levels = len(max(fields, key=len))
@@ -65,7 +65,7 @@ def flat_df_to_multiindexed_df(input_df: pd.DataFrame) -> pd.DataFrame:
     for c in res.columns:
 
         # ...is filled in looking up the data in the input `pd.DataFrame` by means of the appropriate "merged" column name
-        res[c] = input_df[dlsproc.structure.assemble_name(c)]
+        res[c] = input_df[sproc.structure.assemble_name(c)]
     
     return res
 
@@ -137,7 +137,7 @@ def flatten_columns_names(df: pd.DataFrame, data_scheme: dict, inplace: bool = F
         else:
             
             # ...the new name is obtained by contatenating the individual components
-            new_names.append(dlsproc.structure.nested_tags_separator.join([e for e in c if e != '']))
+            new_names.append(sproc.structure.nested_tags_separator.join([e for e in c if e != '']))
 
             # # it is also recorded in its own list
             # unmapped_names.append(new_names[-1])

@@ -9,12 +9,12 @@ import pathlib
 import pandas as pd
 import yaml
 
-import dlsproc.structure
-import dlsproc.bundle
-import dlsproc.hier
-import dlsproc.io
-import dlsproc.assemble
-import dlsproc.postprocess
+import sproc.structure
+import sproc.bundle
+import sproc.hier
+import sproc.io
+import sproc.assemble
+import sproc.postprocess
 
 # %% ../nbs/70_extend.ipynb 64
 def parquet_with_zip(history_file: str | pathlib.Path, zip_file: str | pathlib.Path, output_file: str | pathlib.Path | None = None) -> None | pd.DataFrame:
@@ -30,13 +30,13 @@ def parquet_with_zip(history_file: str | pathlib.Path, zip_file: str | pathlib.P
     history_df = pd.read_parquet(history_file)
     
     # new data is parsed into a `pd.DataFrame`...
-    new_df = dlsproc.bundle.read_zip(zip_file, concatenate=True)
+    new_df = sproc.bundle.read_zip(zip_file, concatenate=True)
     
     # ...whose columns are a *multiindex*
-    new_df = dlsproc.hier.flat_df_to_multiindexed_df(new_df)
+    new_df = sproc.hier.flat_df_to_multiindexed_df(new_df)
     
     # we also need the information about which entries are flagged as deleted
-    deleted_series = dlsproc.bundle.read_deleted_zip(zip_file)
+    deleted_series = sproc.bundle.read_deleted_zip(zip_file)
     
     # the time zone for the above deleted series and the column "deleted_on" in the historical data
     history_deleted_timezone = history_df["deleted_on"].dt.tz
@@ -53,13 +53,13 @@ def parquet_with_zip(history_file: str | pathlib.Path, zip_file: str | pathlib.P
             deleted_series = deleted_series.dt.tz_convert(history_deleted_timezone)
     
     # the two dataframes are stacked together
-    concatenated_df = dlsproc.assemble.stack(history_df, new_df)
+    concatenated_df = sproc.assemble.stack(history_df, new_df)
     
     # the same contract might show up more than once due to updates...but only the last one is kept
-    concatenated_df = dlsproc.postprocess.keep_updates_only(concatenated_df)
+    concatenated_df = sproc.postprocess.keep_updates_only(concatenated_df)
     
     # duplicates are dropped from the deleted series
-    deduplicated_deleted_series = dlsproc.postprocess.deduplicate_deleted_series(deleted_series)
+    deduplicated_deleted_series = sproc.postprocess.deduplicate_deleted_series(deleted_series)
     
     # for the sake of flagging deleted entries, the new (concatenated) dataframe and the *deleted series* are indexed the same
     reindexed_concatenated_df = concatenated_df.reset_index().set_index(['id'])
@@ -79,7 +79,7 @@ def parquet_with_zip(history_file: str | pathlib.Path, zip_file: str | pathlib.P
         # ...for checking stuff
         assert output_file.suffix == '.parquet', f'output file should end in ".parquet"'
     
-        parquet_df = dlsproc.assemble.parquet_amenable(res)
+        parquet_df = sproc.assemble.parquet_amenable(res)
         
         parquet_df.to_parquet(output_file)
         

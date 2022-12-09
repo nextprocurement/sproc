@@ -10,10 +10,10 @@ import re
 
 import pandas as pd
 
-import dlsproc.structure
+import sproc.structure
 
 # %% ../nbs/15_postprocess.ipynb 15
-re_postal_zone = re.compile(dlsproc.structure.assemble_name(['.*', 'PostalZone$']))
+re_postal_zone = re.compile(sproc.structure.assemble_name(['.*', 'PostalZone$']))
 re_postal_zone
 
 # %% ../nbs/15_postprocess.ipynb 25
@@ -21,7 +21,7 @@ re_postal_zone
 str_columns = []
 
 # %% ../nbs/15_postprocess.ipynb 28
-assembled_str_columns = [dlsproc.structure.assemble_name(c) for c in str_columns]
+assembled_str_columns = [sproc.structure.assemble_name(c) for c in str_columns]
 
 # %% ../nbs/15_postprocess.ipynb 35
 def typecast_columns(input_df: pd.DataFrame) -> pd.DataFrame:
@@ -49,13 +49,13 @@ def typecast_columns(input_df: pd.DataFrame) -> pd.DataFrame:
     # ------------ ContractFolderStatus - TenderingProcess - TenderSubmissionDeadlinePeriod ------------
     
     # columns containing the end date and time
-    date_col = dlsproc.structure.assemble_name(['ContractFolderStatus', 'TenderingProcess','TenderSubmissionDeadlinePeriod','EndDate'])
-    time_col = dlsproc.structure.assemble_name(['ContractFolderStatus', 'TenderingProcess','TenderSubmissionDeadlinePeriod','EndTime'])
+    date_col = sproc.structure.assemble_name(['ContractFolderStatus', 'TenderingProcess','TenderSubmissionDeadlinePeriod','EndDate'])
+    time_col = sproc.structure.assemble_name(['ContractFolderStatus', 'TenderingProcess','TenderSubmissionDeadlinePeriod','EndTime'])
     
     # only if they are present in the `pd.DataFrame`...
     if (date_col in res) and (time_col in res):
         
-        new_column = dlsproc.structure.assemble_name(['ContractFolderStatus', 'TenderingProcess', 'TenderSubmissionDeadlinePeriod'])
+        new_column = sproc.structure.assemble_name(['ContractFolderStatus', 'TenderingProcess', 'TenderSubmissionDeadlinePeriod'])
     
         # we don't want to inadvertently overwrite an existing column
         assert new_column not in res
@@ -92,7 +92,7 @@ def typecast_columns(input_df: pd.DataFrame) -> pd.DataFrame:
             continue
             
         # if this column is *multivalued*...
-        if dlsproc.structure.is_multivalued(res[c]):
+        if sproc.structure.is_multivalued(res[c]):
             
             continue
             

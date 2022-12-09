@@ -8,18 +8,18 @@ import pathlib
 
 import pandas as pd
 
-import dlsproc.structure
-import dlsproc.bundle
-import dlsproc.hier
-import dlsproc.io
-import dlsproc.postprocess
-import dlsproc.parse
+import sproc.structure
+import sproc.bundle
+import sproc.hier
+import sproc.io
+import sproc.postprocess
+import sproc.parse
 
 # %% ../nbs/60_assemble.ipynb 19
 def merge_deleted(data_df: pd.DataFrame, deleted_series: pd.Series) -> pd.DataFrame:
     
     # duplicates are dropped (by means of `deduplicate_deleted_series`), so is the `file name` index, and the result turned into a dataframe
-    deduplicated_deleted_df = dlsproc.postprocess.deduplicate_deleted_series(deleted_series).droplevel(level='file name').to_frame()
+    deduplicated_deleted_df = sproc.postprocess.deduplicate_deleted_series(deleted_series).droplevel(level='file name').to_frame()
     
     # set_trace()
     
@@ -27,7 +27,7 @@ def merge_deleted(data_df: pd.DataFrame, deleted_series: pd.Series) -> pd.DataFr
     if type(data_df.columns) == pd.MultiIndex:
     
         # in order to merge this new `pd.DataFrame` with `data_df` we need a *multiindex* for the former with the same number of levels as in the latter
-        deduplicated_deleted_df.columns = pd.MultiIndex.from_tuples([dlsproc.hier.pad_col_levels(data_df, ['deleted_on'])])
+        deduplicated_deleted_df.columns = pd.MultiIndex.from_tuples([sproc.hier.pad_col_levels(data_df, ['deleted_on'])])
     
     # the `data_df` is (*left*-)joined with the new one yielding deleted entries; the result is a dataframe in which a new (flag) column `deleted_on`
     # was added; notice that `data_df`'s index is reset for easying the merge (assuming every contract
@@ -49,16 +49,16 @@ def parquet_amenable(df: pd.DataFrame, inplace: bool = False) -> pd.DataFrame:
         res = df.copy()
         
     # 1: every element in a multivalued column must be a list (maybe with a single element)
-    res = dlsproc.io.homogenize_multivalued(res)
+    res = sproc.io.homogenize_multivalued(res)
     
     # a list with the names of columns that are *multivalued*
-    multivalued_columns = dlsproc.structure.multivalued_columns(res)
+    multivalued_columns = sproc.structure.multivalued_columns(res)
     
     # 2: the same type is enforced in all the `list`s (across rows and columns) in *multivalued* columns
-    res[multivalued_columns] = res[multivalued_columns].applymap(dlsproc.io.cast_list_to_floats_or_strs)
+    res[multivalued_columns] = res[multivalued_columns].applymap(sproc.io.cast_list_to_floats_or_strs)
     
     # 3: the same type for the elements in the list is enforced across every **individual** multivalued column
-    res[multivalued_columns] = res[multivalued_columns].apply(dlsproc.io.cast_multivalued_series_to_common_type, axis='index')
+    res[multivalued_columns] = res[multivalued_columns].apply(sproc.io.cast_multivalued_series_to_common_type, axis='index')
     
     return res
 
@@ -99,16 +99,16 @@ def distilled_data_from_zip(zip_file: pathlib.Path | str) -> tuple[pd.DataFrame,
     zip_file = pathlib.Path(zip_file)
     
     # data is read from the above *zip* file (every file's data concatenated into a single `pd.DataFrame`)...
-    df = dlsproc.bundle.read_zip(zip_file, concatenate=True)
+    df = sproc.bundle.read_zip(zip_file, concatenate=True)
     
     # ...and re-structured with multiindexed columns
-    df = dlsproc.hier.flat_df_to_multiindexed_df(df)
+    df = sproc.hier.flat_df_to_multiindexed_df(df)
     
     # the same contract might show up more than once due to updates...but only the last one is kept
-    last_update_only_df = dlsproc.postprocess.keep_updates_only(df)
+    last_update_only_df = sproc.postprocess.keep_updates_only(df)
     
     # the same zip file also contains information (at the beginning) about deleted entries
-    deleted_series = dlsproc.bundle.read_deleted_zip(zip_file)
+    deleted_series = sproc.bundle.read_deleted_zip(zip_file)
     
     return last_update_only_df, deleted_series
 
@@ -117,13 +117,13 @@ def sparsity(df: pd.DataFrame, tidy_up: bool = False, do_not_modify_input: bool 
     "Ratio of completeness for every (identified) administration"
     
     # a new `Domain` column is added
-    df['domain'] = dlsproc.parse.domain(df)
+    df['domain'] = sproc.parse.domain(df)
     
     # it is used for grouping
     domain_grouped_df = df.groupby('domain', dropna=False)
     
     # for the sake of convenience
-    domain_col = dlsproc.hier.pad_col_levels(df, ['domain'])
+    domain_col = sproc.hier.pad_col_levels(df, ['domain'])
     
     # for every group we ascertain which elements (across every column) are not null (still a pd.DataFrame),
     # and then summarize it (one value per group and column) with mean (ratio of filled-in values)

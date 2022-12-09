@@ -9,8 +9,8 @@ import zipfile
 
 import pandas as pd
 
-import dlsproc.structure
-import dlsproc.xml
+import sproc.structure
+import sproc.xml
 
 # %% ../nbs/20_bundle.ipynb 11
 def read_zip(
@@ -56,7 +56,7 @@ def read_zip(
             with zip_file.open(name) as f:
                 
                 # ...and processed
-                dfs.append(dlsproc.xml.to_curated_df(f))
+                dfs.append(sproc.xml.to_curated_df(f))
     
     if concatenate:
         
@@ -104,7 +104,7 @@ def read_deleted_zip(input_file: str | pathlib.Path) -> pd.Series:
             with zip_file.open(name) as f:
                 
                 # ...and processed
-                series.append(dlsproc.xml.deleted_to_series(f))
+                series.append(sproc.xml.deleted_to_series(f))
 
     return pd.concat(series, keys=filenames, names=['file name', 'id'])
     # return series
