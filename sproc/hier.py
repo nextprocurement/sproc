@@ -17,35 +17,25 @@ import sproc.xml
 import sproc.structure
 
 # %% ../nbs/30_hierarchical.ipynb 24
-def flat_series_to_multiindexed_series(s: pd.Series) -> pd.Series:
+def flat_series_to_multiindexed_series(
+    s: pd.Series # Flat series
+) -> pd.Series: # Multi-indexed series
+    "Returns a multi-indexed version of the input"
     
     index_paths = []
     values = []
     
-    for i, v in s.iteritems():
+    for i, v in s.items():
         index_paths.append(tuple(i.split(sproc.structure.nested_tags_separator)))
         values.append(v)
         
     return pd.Series(values, index=pd.MultiIndex.from_tuples(index_paths))
 
 # %% ../nbs/30_hierarchical.ipynb 34
-def flat_df_to_multiindexed_df(input_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Reads and parses an XML file into a `pd.DataFrame`.
-    
-    **Parameters**
-    
-    - input_df: `pd.DataFrame`
-    
-        Input dataframe.
-        
-    **Returns**
-    
-    - out: pd.DataFrame
-    
-        A column-hierarchical version of the input dataframe.
-    
-    """
+def flat_df_to_multiindexed_df(
+    input_df: pd.DataFrame # Input dataframe
+) -> pd.DataFrame: # A column-hierarchical version of the input dataframe
+    "Reads and parses an XML file into a `DataFrame`"
     
     # every field becomes a `tuple`
     fields = [tuple(c.split(sproc.structure.nested_tags_separator)) for c in input_df.columns]
