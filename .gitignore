@@ -153,3 +153,6 @@ checklink/cookies.txt
 # manu
 changelog
 wiki
+data
+notebooks
+*.parquet

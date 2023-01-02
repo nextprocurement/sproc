@@ -62,7 +62,7 @@ def parquet_amenable(df: pd.DataFrame, inplace: bool = False) -> pd.DataFrame:
     
     return res
 
-# %% ../nbs/60_assemble.ipynb 48
+# %% ../nbs/60_assemble.ipynb 49
 def stack(top_df: pd.DataFrame, bottom_df: pd.DataFrame) -> pd.DataFrame:
     
     assert top_df.index.names == bottom_df.index.names, 'dataframes are expected to have indexes with the same names'
@@ -92,7 +92,7 @@ def stack(top_df: pd.DataFrame, bottom_df: pd.DataFrame) -> pd.DataFrame:
         
     return pd.concat((top_df, bottom_df), axis=0)
 
-# %% ../nbs/60_assemble.ipynb 55
+# %% ../nbs/60_assemble.ipynb 56
 def distilled_data_from_zip(zip_file: pathlib.Path | str) -> tuple[pd.DataFrame, pd.Series]:
     
     # in case a `str` was passed
@@ -112,7 +112,7 @@ def distilled_data_from_zip(zip_file: pathlib.Path | str) -> tuple[pd.DataFrame,
     
     return last_update_only_df, deleted_series
 
-# %% ../nbs/60_assemble.ipynb 61
+# %% ../nbs/60_assemble.ipynb 62
 def sparsity(df: pd.DataFrame, tidy_up: bool = False, do_not_modify_input: bool = True) -> pd.DataFrame:
     "Ratio of completeness for every (identified) administration"
     

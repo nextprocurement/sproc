@@ -94,14 +94,19 @@ def _data_scheme_ok(data_scheme: dict) -> bool:
         
         lengths.append(len(l))
         
-        if not np.all([(type(e) == str) or np.isnan(e) for e in data_scheme['id']]):
+        # if not every element is a `str` or `nan`...
+        if not np.all([(type(e) == str) or np.isnan(e) for e in l]):
             
             return False
         
     return np.unique(lengths).shape[0] == 1
 
-# %% ../nbs/30_hierarchical.ipynb 83
-def flatten_columns_names(df: pd.DataFrame, data_scheme: dict, inplace: bool = False) -> None | pd.DataFrame:
+# %% ../nbs/30_hierarchical.ipynb 84
+def flatten_columns_names(
+    df: pd.DataFrame, # Input
+    data_scheme: dict # Every key is a flattened name, and every value a list with the different levels of the multi-index
+    , inplace: bool = False # If `True` the input DataFrame is modified
+    ) -> None | pd.DataFrame: # Flat DataFrame
     
     assert _data_scheme_ok(data_scheme), f'data scheme is not OK'
     
@@ -109,11 +114,8 @@ def flatten_columns_names(df: pd.DataFrame, data_scheme: dict, inplace: bool = F
     inv_data_scheme = {''.join([e if pd.notna(e) else '' for e in v]): k for k, v in data_scheme.items()}
     
     new_names = []
-    # unmapped_names = []
     
     for c in df.columns:
-        
-        # print(c)
         
         stitched_c = ''.join(c)
         
@@ -128,9 +130,6 @@ def flatten_columns_names(df: pd.DataFrame, data_scheme: dict, inplace: bool = F
             
             # ...the new name is obtained by contatenating the individual components
             new_names.append(sproc.structure.nested_tags_separator.join([e for e in c if e != '']))
-
-            # # it is also recorded in its own list
-            # unmapped_names.append(new_names[-1])
     
     if inplace:
         
@@ -141,7 +140,5 @@ def flatten_columns_names(df: pd.DataFrame, data_scheme: dict, inplace: bool = F
         res = df.copy()
     
     res.columns = new_names
-    
-    # print(f'Unmapped columns:\n{unmapped_names}')
     
     return res

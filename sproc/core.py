@@ -7,6 +7,7 @@ __all__ = ['cli_process_zip', 'cli_extend_parquet_with_zip', 'cli_rename_columns
 import sys
 import argparse
 import pathlib
+import datetime
 
 import yaml
 import pandas as pd
@@ -16,6 +17,8 @@ import sproc.hier
 import sproc.assemble
 import sproc.bundle
 import sproc.postprocess
+import sproc.structure
+import sproc.download
 
 # %% ../nbs/00_core.ipynb 8
 def cli_process_zip(args: list = None) -> None:
@@ -85,7 +88,10 @@ def cli_rename_columns(args: list = None) -> None:
     renamed_cols_df.to_parquet(output_file)
 
 # %% ../nbs/00_core.ipynb 31
-def read_zips(files: list) -> pd.DataFrame:
+def read_zips(
+    files: list[str | pathlib.Path] # Input files
+    ) -> pd.DataFrame: # Procurement data
+    "Build a `DataFrame` out of a bunch of zip files"
     
     # at the beginning it is guaranteed that every file is present
     for f in files:
