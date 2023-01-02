@@ -19,9 +19,7 @@ import sproc.parse
 def merge_deleted(data_df: pd.DataFrame, deleted_series: pd.Series) -> pd.DataFrame:
     
     # duplicates are dropped (by means of `deduplicate_deleted_series`), so is the `file name` index, and the result turned into a dataframe
-    deduplicated_deleted_df = sproc.postprocess.deduplicate_deleted_series(deleted_series).droplevel(level='file name').to_frame()
-    
-    # set_trace()
+    deduplicated_deleted_df = sproc.postprocess.deduplicate_deleted_series(deleted_series).droplevel(level=['zip', 'file name']).to_frame()
     
     # if this is a column-multiindexed dataframe
     if type(data_df.columns) == pd.MultiIndex:
@@ -35,7 +33,7 @@ def merge_deleted(data_df: pd.DataFrame, deleted_series: pd.Series) -> pd.DataFr
     res = data_df.reset_index().set_index(['id']).merge(deduplicated_deleted_df, how='left', on=['id'])
     
     # on return, the index is left as it was
-    return res.reset_index().set_index(['file name', 'entry'])
+    return res.reset_index().set_index(['zip', 'file name', 'entry'])
 
 # %% ../nbs/60_assemble.ipynb 31
 def parquet_amenable(df: pd.DataFrame, inplace: bool = False) -> pd.DataFrame:
@@ -65,7 +63,7 @@ def parquet_amenable(df: pd.DataFrame, inplace: bool = False) -> pd.DataFrame:
 # %% ../nbs/60_assemble.ipynb 49
 def stack(top_df: pd.DataFrame, bottom_df: pd.DataFrame) -> pd.DataFrame:
     
-    assert top_df.index.names == bottom_df.index.names, 'dataframes are expected to have indexes with the same names'
+    assert top_df.index.names == bottom_df.index.names, 'DataFrames are expected to have indexes with the same names'
     
     # if we have different number of levels in the dataframes...
     if top_df.columns.nlevels != bottom_df.columns.nlevels:

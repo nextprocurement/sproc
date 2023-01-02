@@ -143,7 +143,7 @@ def read_zips(
     stateful_df = sproc.assemble.merge_deleted(res_last_update_only_df, deduplicated_deleted_series)
     
     # the number of filled-in rows for column `deleted_on` should match the number of `id`s in `deduplicated_deleted_series` that show up in `stateful_df`
-    assert stateful_df['deleted_on'].notna().sum() == len(set(stateful_df['id']) & set(deduplicated_deleted_series.index.get_level_values(1)))
+    assert stateful_df['deleted_on'].notna().sum() == len(set(stateful_df['id']) & set(deduplicated_deleted_series.index.get_level_values(2)))
             
     return stateful_df
 

@@ -16,7 +16,7 @@ import sproc.io
 import sproc.assemble
 import sproc.postprocess
 
-# %% ../nbs/70_extend.ipynb 64
+# %% ../nbs/70_extend.ipynb 65
 def parquet_with_zip(history_file: str | pathlib.Path, zip_file: str | pathlib.Path, output_file: str | pathlib.Path | None = None) -> None | pd.DataFrame:
     
     # in case `str`s were passed
