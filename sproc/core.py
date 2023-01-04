@@ -11,6 +11,7 @@ import datetime
 
 import yaml
 import pandas as pd
+from tqdm import tqdm
 
 import sproc.extend
 import sproc.hier
@@ -106,9 +107,11 @@ def read_zips(
     res_df = None
     res_deleted_series = None
 
-    for f in files:
+    for f in tqdm(files, desc='Assembling files'):
+    # for f in files:
 
-        print(f'Processing "{f}"')
+        # print(f'Processing "{f}"')
+        tqdm.write(f'Processing "{f}"')
 
         # data is read from the above *zip* file, and `concatenate`d into a single `pd.DataFrame`...
         df = sproc.bundle.read_zip(f, concatenate=True)

@@ -10,7 +10,9 @@ import datetime
 
 import urllib3
 import pandas as pd
-import rich.progress
+# import rich.progress
+# from tqdm.autonotebook import tqdm
+from tqdm import tqdm
 
 import sproc.structure
 
@@ -83,7 +85,7 @@ def make_urls(
 
     return urls_filenames
 
-# %% ../nbs/80_download.ipynb 17
+# %% ../nbs/80_download.ipynb 18
 def from_date(
     kind: str, # One of 'outsiders', 'insiders', or 'minors'
     date: datetime.datetime, # The starting date
@@ -103,7 +105,8 @@ def from_date(
 
     every_output_file = []
 
-    for url, filename in rich.progress.track(urls_filenames, description='Downloading raw data'):
+    for url, filename in tqdm(urls_filenames, desc='Downloading raw data'):
+    # for url, filename in rich.progress.track(urls_filenames, description='Downloading raw data'):
 
         output_file = output_directory / filename
 
@@ -112,7 +115,8 @@ def from_date(
 
         if output_file.exists():
 
-            print(f'"{output_file.name}" already exists')
+            # print(f'"{output_file.name}" already exists')
+            tqdm.write(f'"{output_file.name}" already exists')
             
             continue
 

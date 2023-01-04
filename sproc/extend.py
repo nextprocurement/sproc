@@ -17,7 +17,12 @@ import sproc.assemble
 import sproc.postprocess
 
 # %% ../nbs/70_extend.ipynb 65
-def df_with_zip(history_df: pd.DataFrame, zip_file: str | pathlib.Path, output_file: str | pathlib.Path | None = None) -> None | pd.DataFrame:
+def df_with_zip(
+    history_df: pd.DataFrame, # DataFrame to be extended
+    zip_file: str | pathlib.Path, # Zip file with new data
+    output_file: str | pathlib.Path | None = None # Output file (optional)
+    ) -> None | pd.DataFrame: # Extended DataFrame or nothing if an `output_file` was passed
+    "Extend an existing DataFrame with the data in a zip file"
 
     # in case `str`s were passed
     zip_file = pathlib.Path(zip_file)
@@ -85,7 +90,12 @@ def df_with_zip(history_df: pd.DataFrame, zip_file: str | pathlib.Path, output_f
         return res
 
 # %% ../nbs/70_extend.ipynb 67
-def parquet_with_zip(history_file: str | pathlib.Path, zip_file: str | pathlib.Path, output_file: str | pathlib.Path | None = None) -> None | pd.DataFrame:
+def parquet_with_zip(
+    history_file: str | pathlib.Path, # DataFrame to be extended
+    zip_file: str | pathlib.Path, # Zip file with new data
+    output_file: str | pathlib.Path | None = None # Output file (optional)
+    ) -> None | pd.DataFrame: # Extended DataFrame or nothing if an `output_file` was passed
+    "Extend an existing parquet file with the data in a zip file"
     
     # in case `str`s were passed
     history_file = pathlib.Path(history_file)

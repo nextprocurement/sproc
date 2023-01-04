@@ -16,7 +16,8 @@ LIBRARIES=(
     pyarrow
     openpyxl
 	ruamel.yaml
-	rich ipywidgets
+	# rich ipywidgets
+    tqdm ipywidgets
 )
 
 CHANNELS=(

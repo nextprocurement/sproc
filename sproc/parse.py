@@ -45,11 +45,13 @@ def year_and_maybe_month(
 
     try:
 
+        # year and month
         d = datetime.datetime.strptime(s, '%Y%d')
     
     except ValueError:
 
-        d = datetime.datetime.strptime(s, '%Y')
+        # only year
+        d = datetime.datetime.strptime(s, '%Y').replace(month=12)
 
     return d
 
