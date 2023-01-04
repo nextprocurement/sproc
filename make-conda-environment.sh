@@ -5,7 +5,7 @@ MANAGER="mamba"
 NAME=sproc
 
 LIBRARIES=(
-    jupyterlab
+    jupyterlab jupyter_console
     nbdev">"2.3
     colorama
     python-magic

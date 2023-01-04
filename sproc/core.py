@@ -19,6 +19,7 @@ import sproc.bundle
 import sproc.postprocess
 import sproc.structure
 import sproc.download
+import sproc.parse
 
 # %% ../nbs/00_core.ipynb 8
 def cli_process_zip(args: list = None) -> None:

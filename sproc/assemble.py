@@ -18,7 +18,7 @@ import sproc.parse
 # %% ../nbs/60_assemble.ipynb 19
 def merge_deleted(data_df: pd.DataFrame, deleted_series: pd.Series) -> pd.DataFrame:
     
-    # duplicates are dropped (by means of `deduplicate_deleted_series`), so is the `file name` index, and the result turned into a dataframe
+    # duplicates are dropped (by means of `deduplicate_deleted_series`), so is the `file name` index, and the result turned into a DataFrame
     deduplicated_deleted_df = sproc.postprocess.deduplicate_deleted_series(deleted_series).droplevel(level=['zip', 'file name']).to_frame()
     
     # if this is a column-multiindexed dataframe
