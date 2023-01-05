@@ -120,6 +120,8 @@ def from_date(
             
             continue
 
+        tqdm.write(f'downloading "{output_file.name}"...')
+
         # file is actually downloaded
         file(url, output_file)
 
