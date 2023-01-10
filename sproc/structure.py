@@ -22,23 +22,10 @@ tables
 nested_tags_separator = ' - '
 
 # %% ../nbs/05_structure.ipynb 19
-def assemble_name(tags: list) -> str:
-    """
-    Assemble the name of field/column in the DataFrame from a path of nested tags.
-    
-    **Parameters**
-    
-    - tags: list
-    
-        List of tags.
-    
-    **Returns**
-    
-    - out: str
-    
-        A suitable name.
-    
-    """
+def assemble_name(
+    tags: list # Tags
+    ) -> str: # Name
+    "Assemble the name of field/column in the DataFrame from a path of nested tags"
     
     tags = filter(pd.notna, tags)
     tags = filter(lambda x: x!='', tags)
@@ -46,29 +33,18 @@ def assemble_name(tags: list) -> str:
     return nested_tags_separator.join(tags)
 
 # %% ../nbs/05_structure.ipynb 27
-def is_multivalued(s: pd.Series) -> bool:
-    """
-    Returns `True` is the given `pd.Series` has a `list` at any index.
+def is_multivalued(
+    s: pd.Series # Input
+    ) -> bool: # `True` if the input contains some `list`
+    "Returns `True` is the given `pd.Series` has a `list` at any index"
     
-    **Parameters**
-    
-    - s: pandas series
-    
-        Input
-        
-    **Returns**
-    
-    - out: bool
-    
-        `True` if the input contains some `list`.
-    
-    """
-    
-    # return s.apply(lambda x: type(x) == list).any()
     return s.apply(lambda x: (type(x) == list) or (type(x) == np.ndarray)).any()
 
 # %% ../nbs/05_structure.ipynb 32
-def multivalued_columns(df: pd.DataFrame) -> list:
+def multivalued_columns(
+    df: pd.DataFrame # Input
+    ) -> list: # Columns' names
+    "Returns the list of multi-valued columns"
     
     # `True` or `False` for every column
     is_column_multivalued = df.apply(is_multivalued, axis='index')

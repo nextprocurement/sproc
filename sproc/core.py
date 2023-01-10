@@ -228,7 +228,7 @@ def update(
         history_df = df
 
         # every file that has been downloaded...
-        for f in tqdm(downloaded_files, desc='Updating'):
+        for f in tqdm(downloaded_files, desc='Updatingtqdm'):
 
             tqdm.write(f'Appending "{f.name}"')
 
@@ -241,7 +241,7 @@ def update(
         # agreed upon
         from_date = datetime.datetime(2017, 12, 1)
 
-        print(f'no previous "{output_file}" was found: making using data since {from_date.date()}...')
+        print(f'no previous "{output_file}" was found: making one using data since {from_date.date()}...')
 
         # print(sproc.download.make_urls(**sproc.structure.tables[kind], from_date=from_date))
 
@@ -257,7 +257,7 @@ def update(
     # parquet_df.to_parquet(output_file.with_stem('new'))
     parquet_df.to_parquet(output_file)
 
-# %% ../nbs/00_core.ipynb 46
+# %% ../nbs/00_core.ipynb 43
 def cli_update(args: list = None) -> None:
     
     parser = argparse.ArgumentParser(description='Update (or make) local data')

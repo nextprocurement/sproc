@@ -20,7 +20,10 @@ domain_discriminative_columns_paths = [
 ]
 
 # %% ../nbs/50_parse.ipynb 25
-def domain(df: pd.DataFrame) -> pd.Series:
+def domain(
+    df: pd.DataFrame # Input
+    ) -> pd.Series: # Domains
+    "Extract the (internet) domains from the given data"
     
     # columns names from "path"s
     columns = [sproc.hier.pad_col_levels(df, p) for p in domain_discriminative_columns_paths]

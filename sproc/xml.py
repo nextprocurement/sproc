@@ -18,7 +18,10 @@ import sproc.structure
 import sproc.postprocess
 
 # %% ../nbs/10_xml.ipynb 13
-def get_namespaces(input_file: str | pathlib.Path, root_name: str = 'base') -> dict:
+def get_namespaces(
+    input_file: str | pathlib.Path, # XML file
+    root_name: str = 'base' # Name of the root element
+    ) -> dict[str, str]: # Mapping from *tag* to *namespace*
     
     tree = etree.parse(input_file)
     

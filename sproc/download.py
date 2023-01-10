@@ -19,7 +19,8 @@ import sproc.structure
 # %% ../nbs/80_download.ipynb 6
 def file(
     url: str, # URL for the file to be downloaded
-    output_file: str | pathlib.Path # Name of the local file to be saved
+    output_file: str | pathlib.Path, # Name of the local file to be saved
+    timeout: float = 2. # How long to wait for a response
     ) -> None:
 
     # in case a `str` was passed
@@ -30,11 +31,13 @@ def file(
     try:
     
         # the request is made
-        request = pool_manager.request('GET', url)
+        request = pool_manager.request('GET', url, timeout=timeout)
 
     except urllib3.exceptions.MaxRetryError:
 
-        print(f'can\'t download "{url}"')
+        # print(f'can\'t download "{url}"')
+
+        raise Exception(f'can\'t download "{url}"')
 
     with output_file.open('wb') as f:
 
@@ -53,6 +56,10 @@ def make_urls(
 
     today = datetime.datetime.today()
 
+    # print(f'{from_date=}')
+    # print(f'{next_month=}')
+    # print(f'{today=}')
+
     end_year = today.year
     end_month = today.month
 
@@ -65,13 +72,18 @@ def make_urls(
     # if a month after `from_date` is still the same year...
     if next_month.year == from_date.year:
     
+        # ...loop through the remaining months
         for month in range(next_month.month, 12+1):
 
             filename = base_filename + str(next_month.year) + str(month).zfill(2) + '.zip'
 
             append(filename)
 
-    for year in range(next_month.year+1, today.year):
+    # for the year of `from_date` until the *previous* year
+    for year in range(from_date.year+1, today.year):
+    # for year in range(next_month.year+1, today.year):
+
+        # print(f'{year=}')
 
         filename = base_filename + str(year) + '.zip'
 
@@ -85,7 +97,7 @@ def make_urls(
 
     return urls_filenames
 
-# %% ../nbs/80_download.ipynb 18
+# %% ../nbs/80_download.ipynb 19
 def from_date(
     kind: str, # One of 'outsiders', 'insiders', or 'minors'
     date: datetime.datetime, # The starting date
