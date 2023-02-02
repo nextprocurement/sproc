@@ -81,7 +81,7 @@ some YAML file
 
 This would yield a `pd.DataFrame` with *plain* columns in file
 `2018_flattened.parquet`. Renaming is carried out using the mapping in
-[PLACE.yaml](https://github.com/manuvazquez/sproc/blob/master/samples/PLACE.yaml),
+[PLACE.yaml](https://github.com/manuvazquez/sproc/blob/main/samples/PLACE.yaml),
 which can be found in the `samples` directory of this repository.
 
 #### Processing a list of zip files

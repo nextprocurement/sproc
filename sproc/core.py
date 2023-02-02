@@ -63,34 +63,63 @@ def cli_extend_parquet_with_zip(args: list = None) -> None:
     sproc.extend.parquet_with_zip(history_file, zip_file, output_file)
 
 # %% ../nbs/00_core.ipynb 23
-def cli_rename_columns(args: list = None) -> None:
+def cli_rename_columns(args: list = None) -> pathlib.Path:
     
     parser = argparse.ArgumentParser(description='Rename columns')
 
     parser.add_argument('hierarchical_file', type=argparse.FileType('r'), help='(Hierarchical) Parquet file')
-    parser.add_argument('mapping_file', type=argparse.FileType('r'), help='YAML file mapping hierarchical colum names to plain ones')
-    parser.add_argument('output_file', help='Output (parquet) file')
+    # parser.add_argument('output_file', help='Output (parquet) file')
+    
+    parser.add_argument('-l', '--from-local-file', type=argparse.FileType('r'), help='Local file')
+    parser.add_argument('-r', '--from-repository-file', help='Repository file')
 
     command_line_arguments = parser.parse_args(args)
+    
+    # assert not (command_line_arguments.from_repository_file and command_line_arguments.from_local_file), f'"from-local-file" and "from-repository-file" options are exclusive'
+    
+    assert (command_line_arguments.from_repository_file is None) ^ (command_line_arguments.from_local_file is None), 'Either "from-local-file" or "from-repository-file" is expected'
+    
+    if command_line_arguments.from_repository_file:
+        
+        # print('repository...')
+        
+        # url = 'https://raw.githubusercontent.com/manuvazquez/sproc/main/naming/' + command_line_arguments.from_repository_file
+        url = 'https://raw.githubusercontent.com/manuvazquez/sproc/main/samples/' + command_line_arguments.from_repository_file
+        
+        data_scheme = sproc.download.yaml_to_dict(url)
+        
+    # elif command_line_arguments.from_local_file:
+    else:
+        
+        # print('local...')
+        
+        with open(command_line_arguments.from_local_file.name) as yaml_data:
+            
+            data_scheme = yaml.load(yaml_data, Loader=yaml.FullLoader)
+        
+#     else:
+        
+#         print('nor repository nor local...')
+        
     
     hierarchical_file = pathlib.Path(command_line_arguments.hierarchical_file.name)
     assert hierarchical_file.suffix == '.parquet', 'a (hierarchical) .parquet file was expected'
     
-    mapping_file = pathlib.Path(command_line_arguments.mapping_file.name)
-    assert (mapping_file.suffix == '.yaml') or (mapping_file.suffix == '.YAML'), 'a YAML file was expected'
-    
-    output_file = pathlib.Path(command_line_arguments.output_file)
-    assert output_file.suffix == '.parquet', 'a .parquet file was expected'
-    
-    with mapping_file.open() as yaml_data:
-        data_scheme = yaml.load(yaml_data, Loader=yaml.FullLoader)
+    # name of the output file is derived from that of the input
+    output_file = hierarchical_file.with_stem(hierarchical_file.stem + '_renamed')
         
     df = pd.read_parquet(hierarchical_file)
     renamed_cols_df = sproc.hier.flatten_columns_names(df, data_scheme)
     
     renamed_cols_df.to_parquet(output_file)
 
-# %% ../nbs/00_core.ipynb 30
+    # print(command_line_arguments)
+    # print(data_scheme)
+    # print(output_file)
+    
+    return output_file
+
+# %% ../nbs/00_core.ipynb 33
 def read_zips(
     files: list[str | pathlib.Path] # Input files
     ) -> pd.DataFrame: # Procurement data
@@ -152,7 +181,7 @@ def read_zips(
             
     return stateful_df
 
-# %% ../nbs/00_core.ipynb 36
+# %% ../nbs/00_core.ipynb 39
 def cli_read_zips(args: list = None) -> None:
     
     parser = argparse.ArgumentParser(description='Process a bunch of zip files')
@@ -175,7 +204,7 @@ def cli_read_zips(args: list = None) -> None:
     
     print(f'writing {output_file}...')
 
-# %% ../nbs/00_core.ipynb 40
+# %% ../nbs/00_core.ipynb 43
 def update(
     kind: str, # One of 'outsiders', 'insiders', or 'minors'
     output_directory: str | pathlib.Path # The path where hosting
@@ -257,7 +286,7 @@ def update(
     # parquet_df.to_parquet(output_file.with_stem('new'))
     parquet_df.to_parquet(output_file)
 
-# %% ../nbs/00_core.ipynb 43
+# %% ../nbs/00_core.ipynb 46
 def cli_update(args: list = None) -> None:
     
     parser = argparse.ArgumentParser(description='Update (or make) local data')
