@@ -18,13 +18,16 @@ import yaml
 import sproc.structure
 
 # %% ../nbs/80_download.ipynb 4
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# %% ../nbs/80_download.ipynb 6
 def file(
     url: str, # URL for the file to be downloaded
     output_file: str | pathlib.Path | None, # Name of the local file to be saved; if `None` its content is returned
     timeout: float = 2. # How long to wait for a response
     ) -> None | bytes:
 
-    pool_manager = urllib3.PoolManager()
+    pool_manager = urllib3.PoolManager(cert_reqs='CERT_NONE')
 
     try:
     
@@ -50,7 +53,7 @@ def file(
 
         f.write(request.data)
 
-# %% ../nbs/80_download.ipynb 11
+# %% ../nbs/80_download.ipynb 13
 def yaml_to_dict(
     url: str, # URL for the file to be downloaded
     timeout: float = 2. # How long to wait for a response
@@ -59,7 +62,7 @@ def yaml_to_dict(
 
     return yaml.safe_load(file(url, None, timeout))
 
-# %% ../nbs/80_download.ipynb 15
+# %% ../nbs/80_download.ipynb 17
 def make_urls(
     base_url: str, # URL to the server including the hosting directory
     base_filename: str, # File name without neither date information nor extension
@@ -113,7 +116,7 @@ def make_urls(
 
     return urls_filenames
 
-# %% ../nbs/80_download.ipynb 21
+# %% ../nbs/80_download.ipynb 23
 def from_date(
     kind: str, # One of 'outsiders', 'insiders', or 'minors'
     date: datetime.datetime, # The starting date

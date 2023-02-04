@@ -31,11 +31,11 @@ The software can be exploited as a library or as *standalone* scripts.
 
 #### Downloading data
 
-`sproc_update` command is the work-horse of the library. It allows
+`sproc_dl` command is the work-horse of the library. It allows
 downloading *all* the data of a given `kind` into a *parquet* file, that
 later on can be updated invoking the same command. Running, e.g.,
 
-    sproc_update outsiders
+    sproc_dl outsiders
 
 will download all the *aggregated* procurement data (excluding minor
 contracts), and write a `outsiders.parquet` file. Argument `-o` can be
@@ -77,10 +77,10 @@ the example above, `ContractFolderStatus - ContractFolderID` and
 Additionally, some renaming might be applied following the mapping in
 some YAML file
 
-    sproc_rename_cols.py 2018.parquet samples/PLACE.yaml 2018_flattened.parquet
+    sproc_rename_cols.py 2018.parquet -f samples/PLACE.yaml
 
 This would yield a `pd.DataFrame` with *plain* columns in file
-`2018_flattened.parquet`. Renaming is carried out using the mapping in
+`2018_renamed.parquet`. Renaming is carried out using the mapping in
 [PLACE.yaml](https://github.com/manuvazquez/sproc/blob/main/samples/PLACE.yaml),
 which can be found in the `samples` directory of this repository.
 
