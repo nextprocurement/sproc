@@ -77,12 +77,15 @@ the example above, `ContractFolderStatus - ContractFolderID` and
 Additionally, some renaming might be applied following the mapping in
 some YAML file
 
-    sproc_rename_cols.py 2018.parquet -f samples/PLACE.yaml
+    sproc_rename_cols.py 2018.parquet -l samples/PLACE.yaml
 
 This would yield a `pd.DataFrame` with *plain* columns in file
 `2018_renamed.parquet`. Renaming is carried out using the mapping in
 [PLACE.yaml](https://github.com/manuvazquez/sproc/blob/main/samples/PLACE.yaml),
-which can be found in the `samples` directory of this repository.
+which can be found in the `samples` directory of this repository. If you
+don’t provide a local file (`-l`) or a remote file (`-r`), a *default*
+naming scheme will be used if the name of the input file is
+`outsiders.parquet`, `insiders.parquet`, or `minors.parquet`.
 
 #### Processing a list of zip files
 
