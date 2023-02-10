@@ -12,9 +12,21 @@ import pandas as pd
 
 # %% ../nbs/05_structure.ipynb 6
 tables = {
-    'outsiders': {'base_url': 'https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_1044/', 'base_filename': 'PlataformasAgregadasSinMenores_'},
-    'insiders': {'base_url': 'https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_643/', 'base_filename': 'licitacionesPerfilesContratanteCompleto3_'},
-    'minors': {'base_url': 'https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_1143/', 'base_filename': 'contratosMenoresPerfilesContratantes_'}
+    'outsiders': {
+        'base_url': 'https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_1044/',
+        'base_filename': 'PlataformasAgregadasSinMenores_',
+        'naming_filename': 'outsiders.yaml'
+        },
+    'insiders': {
+        'base_url': 'https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_643/',
+        'base_filename': 'licitacionesPerfilesContratanteCompleto3_',
+        'naming_filename': 'insiders_minors.yaml'
+        },
+    'minors': {
+        'base_url': 'https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_1143/',
+        'base_filename': 'contratosMenoresPerfilesContratantes_',
+        'naming_filename': 'insiders_minors.yaml'
+        }
     }
 tables
 

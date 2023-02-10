@@ -74,16 +74,39 @@ def cli_rename_columns(args: list = None) -> pathlib.Path:
 
     command_line_arguments = parser.parse_args(args)
     
-    # assert not (command_line_arguments.from_repository_file and command_line_arguments.from_local_file), f'"from-local-file" and "from-repository-file" options are exclusive'
+    # for the sake of convenience
+    hierarchical_file = pathlib.Path(command_line_arguments.hierarchical_file.name)
     
-    assert (command_line_arguments.from_repository_file is None) ^ (command_line_arguments.from_local_file is None), 'Either "from-local-file" or "from-repository-file" is expected'
+    assert not (command_line_arguments.from_repository_file and command_line_arguments.from_local_file), f'"from-local-file" and "from-repository-file" options are exclusive'
     
-    if command_line_arguments.from_repository_file:
+    # assert (command_line_arguments.from_repository_file is None) ^ (command_line_arguments.from_local_file is None), 'Either "from-local-file" or "from-repository-file" is expected'
+    
+    # if a repository file was requested OR no argument was passed...
+    if command_line_arguments.from_repository_file or ((command_line_arguments.from_repository_file is None) and (command_line_arguments.from_local_file is None)):
         
         # print('repository...')
+
+        url = 'https://raw.githubusercontent.com/manuvazquez/sproc/main/naming/'
+
+        # if a repository file was requested...
+        if command_line_arguments.from_repository_file is not None:
         
-        url = 'https://raw.githubusercontent.com/manuvazquez/sproc/main/naming/' + command_line_arguments.from_repository_file
-        # url = 'https://raw.githubusercontent.com/manuvazquez/sproc/main/samples/' + command_line_arguments.from_repository_file
+            # url = 'https://raw.githubusercontent.com/manuvazquez/sproc/main/naming/' + command_line_arguments.from_repository_file
+            url += command_line_arguments.from_repository_file
+
+        # if no argument was passed
+        else:
+
+            if hierarchical_file.stem in sproc.structure.tables:
+
+                url += sproc.structure.tables[hierarchical_file.stem]['naming_filename']
+                
+                # print(url)
+
+            else:
+
+                print(f'The name of the input file is not associated with any naming scheme')
+                return
         
         data_scheme = sproc.download.yaml_to_dict(url)
         
@@ -96,12 +119,14 @@ def cli_rename_columns(args: list = None) -> pathlib.Path:
             
             data_scheme = yaml.load(yaml_data, Loader=yaml.FullLoader)
         
-#     else:
+    # else:
+
+    #     print('nor repository nor local...trying to guess from the file name')
+
+    #     # kind = command_line_arguments.hierarchical_file.stem
         
-#         print('nor repository nor local...')
+    # print(data_scheme)
         
-    
-    hierarchical_file = pathlib.Path(command_line_arguments.hierarchical_file.name)
     assert hierarchical_file.suffix == '.parquet', 'a (hierarchical) .parquet file was expected'
     
     # name of the output file is derived from that of the input
@@ -236,10 +261,6 @@ def dl(
         # the date from which to download new data is taken to be the maximum
         from_date = date_strs.max()
 
-        # print(from_date)
-
-        # print(sproc.download.make_urls(**sproc.structure.tables[kind], from_date=from_date))
-
         # required files are downloaded
         downloaded_files = sproc.download.from_date(kind, date=from_date, output_directory=output_directory)
 
@@ -268,8 +289,6 @@ def dl(
 
         print(f'no previous "{output_file}" was found: making one using data since {from_date.date()}...')
 
-        # print(sproc.download.make_urls(**sproc.structure.tables[kind], from_date=from_date))
-
         # downloading
         downloaded_files = sproc.download.from_date(kind, date=from_date, output_directory=output_directory)
 
@@ -295,6 +314,6 @@ def cli_dl(args: list = None) -> None:
     # directory is made if it doesn't exist
     command_line_arguments.output_directory.mkdir(exist_ok=True)
 
-    print(command_line_arguments)
+    # print(command_line_arguments)
 
     dl(command_line_arguments.kind, command_line_arguments.output_directory)

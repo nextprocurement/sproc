@@ -99,7 +99,8 @@ def _data_scheme_ok(data_scheme: dict) -> bool:
             
             return False
         
-    return np.unique(lengths).shape[0] == 1
+    return True
+    # return np.unique(lengths).shape[0] == 1 # <-------------------------- TODO: required?
 
 # %% ../nbs/30_hierarchical.ipynb 84
 def flatten_columns_names(
@@ -119,7 +120,7 @@ def flatten_columns_names(
         
         stitched_c = ''.join(c)
         
-        # if the columns is found in the inverse mapping...
+        # if the column is found in the inverse mapping...
         if stitched_c in inv_data_scheme:
             
             # ...the given name is used

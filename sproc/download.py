@@ -116,7 +116,7 @@ def make_urls(
 
     return urls_filenames
 
-# %% ../nbs/80_download.ipynb 23
+# %% ../nbs/80_download.ipynb 25
 def from_date(
     kind: str, # One of 'outsiders', 'insiders', or 'minors'
     date: datetime.datetime, # The starting date
@@ -132,7 +132,8 @@ def from_date(
 
     info = sproc.structure.tables[kind]
 
-    urls_filenames = make_urls(**info, from_date=date)
+    # urls_filenames = make_urls(**info, from_date=date)
+    urls_filenames = make_urls(info['base_url'], info['base_filename'], from_date=date)
 
     every_output_file = []
 
