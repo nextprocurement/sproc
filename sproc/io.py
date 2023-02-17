@@ -65,7 +65,7 @@ def homogenize_multivalued(df: pd.DataFrame) -> pd.DataFrame:
         
     return res
 
-# %% ../nbs/40_io.ipynb 36
+# %% ../nbs/40_io.ipynb 35
 def cast_list_to_floats_or_strs(l: list) -> list:
     
     # *scalar* Pandas' `pd.NA` are turned into Numpy's `np.nan`
@@ -76,12 +76,14 @@ def cast_list_to_floats_or_strs(l: list) -> list:
     
     # `TypeError` most likely means there is (at least) one element that is a list
     except (ValueError, TypeError):
+        
         return [str(e) for e in l]
 
 # %% ../nbs/40_io.ipynb 55
 def cast_multivalued_series_to_common_type(s: pd.Series) -> pd.Series:
     
     types = set(s.apply(lambda x: type(x[0])))
+    # print(s.apply(lambda x: type(x[0])))
     
     if len(types) == 1:
         
@@ -89,19 +91,19 @@ def cast_multivalued_series_to_common_type(s: pd.Series) -> pd.Series:
     
     elif types == set([float, str]):
         
-        return s.apply(lambda x: [str(e )for e in x])
+        return s.apply(lambda x: [str(e) for e in x])
     
     else:
         
         raise Exception("don't know how to handle these types")
 
-# %% ../nbs/40_io.ipynb 60
+# %% ../nbs/40_io.ipynb 62
 @fastcore.foundation.patch
 def write(self: File, df: pd.DataFrame):
     
     df.to_pickle(self.name)
 
-# %% ../nbs/40_io.ipynb 66
+# %% ../nbs/40_io.ipynb 68
 @fastcore.foundation.patch
 def read(self: File) -> pd.DataFrame:
     

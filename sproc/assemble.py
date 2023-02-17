@@ -17,6 +17,15 @@ import sproc.parse
 
 # %% ../nbs/60_assemble.ipynb 19
 def merge_deleted(data_df: pd.DataFrame, deleted_series: pd.Series) -> pd.DataFrame:
+
+    # if the `deleted_series` is empty
+    if deleted_series.empty:
+
+        res = data_df
+
+        res['deleted_on'] = pd.NaT
+
+        return res
     
     # duplicates are dropped (by means of `deduplicate_deleted_series`), so is the `file name` index, and the result turned into a DataFrame
     deduplicated_deleted_df = sproc.postprocess.deduplicate_deleted_series(deleted_series).droplevel(level=['zip', 'file name']).to_frame()
@@ -110,7 +119,7 @@ def distilled_data_from_zip(zip_file: pathlib.Path | str) -> tuple[pd.DataFrame,
     
     return last_update_only_df, deleted_series
 
-# %% ../nbs/60_assemble.ipynb 62
+# %% ../nbs/60_assemble.ipynb 66
 def sparsity(df: pd.DataFrame, tidy_up: bool = False, do_not_modify_input: bool = True) -> pd.DataFrame:
     "Ratio of completeness for every (identified) administration"
     
@@ -134,7 +143,7 @@ def sparsity(df: pd.DataFrame, tidy_up: bool = False, do_not_modify_input: bool 
         
     if do_not_modify_input:
     
-        # the added column is dropped
+        # the added column is droppedsproc.postprocess.deduplicate_deleted_series(another_distilled_series)
         df.drop(domain_col, axis=1, inplace=True)
     
     return filled_in_ratio_df

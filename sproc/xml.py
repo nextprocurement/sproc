@@ -92,17 +92,86 @@ def deleted_to_series(input_file: str | pathlib.Path) -> pd.Series:
         return pd.Series(data=dates, index=ids, name=name)
 
 # %% ../nbs/10_xml.ipynb 51
-def set_or_append(d: dict, key: str, value: str | dict) -> str | dict:
+def set_or_append(
+    d: dict, # Input (to be modified)
+    key: str, # Entry of the dictionary to be created/extended
+    value: str | dict # Value to be set/added
+    ) -> None:
+    "Set or append a new element to the dictionary storing the data in a single entry"
+
+    # if there is already something in the given `key`...
     if key in d:
+
+        # if what is already there is a list...
         if type(d[key]) == list:
-            d[key].append(value)
+
+            # ...and so is the `value` to be added...
+            if isinstance(value, list):
+
+                # ...whatever came before and was not a list is turned into (a single-element) one
+                d[key] = [e if isinstance(e, list) else [e] for e in d[key]] + [value]
+
+            # if what is going to be added is NOT a list
+            else:
+
+                # if what is there is actually a list of lists...
+                if isinstance(d[key][0], list):
+
+                    # ...the new `value` is turned into a (singleton)
+                    d[key].append([value])
+
+                # if what is there is a (plain) list of scalars (and so is `value`)...
+                else:
+            
+                    d[key].append(value)
+        
+        # if what is already there is NOT a list...
         else:
-            d[key] = [d[key], value]
+
+            # ...we make one, but...
+
+            # ...if the new element is a list...
+            if isinstance(value, list):
+
+                # ...whatever scalar was there is turned into a (single-element) list inside the new list
+                d[key] = [[d[key]]]
+
+            else:
+
+                # whatever was there becomes the 1st element in a new list
+                d[key] = [d[key]]
+
+            # the `value` is finally added
+            d[key].append(value)
+    
+    # if there is nothing for the given `key`...
     else:
-        d[key] = value
+
+        # if `value` is a list AND of scalars...
+        if isinstance(value, list) and not isinstance(value[0], list):
+
+            # in order to play it safe, the list is assumed to be just one element in a sequence
+            d[key] = [value]
+
+        # if the `value` is not a list OR it IS a list of lists...
+        else:
+
+            d[key] = value
+
+    # if the *final* value is a list...
+    if isinstance(d[key], list):
+
+        # "double lists" ([[]]) are turned into simple lists
+        d[key] = [e[0] if (isinstance(e, list) and (len(e) == 1) and isinstance(e[0], list)) else e  for e in d[key]]
+
+            
 
 # %% ../nbs/10_xml.ipynb 61
-def entry_to_dict(entry: etree.Element, recursive: bool = True) -> dict:
+def entry_to_dict(
+    entry: etree.Element, # XML entry
+    recursive: bool = True # If `True`, children of `entry` are also parsed
+    ) -> dict:
+    "Parse an XML entry into a Python dictionary"
 
     res = {}
     
@@ -115,7 +184,7 @@ def entry_to_dict(entry: etree.Element, recursive: bool = True) -> dict:
         # for the sake of readability
         value = e.text
             
-        # if `value` is "something" and not an empty string after striping it of blank characteres...
+        # if `value` is "something" and not an empty string after striping it of blank characters...
         if value and (value.strip() != ''):
             
             # if the text contains a number...
@@ -133,7 +202,6 @@ def entry_to_dict(entry: etree.Element, recursive: bool = True) -> dict:
             # assert tag not in res, f'multiple values for {tag}'
             
             # the value of this element (whether the original text or the obtained number) is stored
-            # res[tag] = value
             set_or_append(res, tag, value)
         
         # if in "recursive mode" and this element has children (`len(e)` is different from 0)...
@@ -147,10 +215,6 @@ def entry_to_dict(entry: etree.Element, recursive: bool = True) -> dict:
                 # the name of the new "key" is assembled from those of the parent and the child
                 key_name = f'{tag}{sproc.structure.nested_tags_separator}{k}'
                 
-                # assert key_name not in res, f'multiple values for {key_name}'                
-                # key_name = unique_name(key_name, res.keys()) # <-------------  a unique name
-                
-                # res[key_name] = v
                 set_or_append(res, key_name, v)
     
     return res
