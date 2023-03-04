@@ -3,7 +3,7 @@
 # %% auto 0
 __all__ = ['re_postal_zone', 'str_columns', 'assembled_str_columns', 'deadline_date_col', 'deadline_time_col',
            'deadline_datetime_col', 'status_col', 'historical_cols', 'assembled_historical_cols', 'typecast_columns',
-           'summarize_id_history', 'keep_updates_only', 'deduplicate_deleted_series']
+           'keep_updates_only', 'deduplicate_deleted_series']
 
 # %% ../nbs/15_postprocess.ipynb 2
 import pathlib
@@ -48,14 +48,8 @@ def typecast_columns(
     
     # ------------ ContractFolderStatus - TenderingProcess - TenderSubmissionDeadlinePeriod ------------
     
-    # columns containing the end date and time
-    # date_col = sproc.structure.assemble_name(['ContractFolderStatus', 'TenderingProcess','TenderSubmissionDeadlinePeriod','EndDate'])
-    # time_col = sproc.structure.assemble_name(['ContractFolderStatus', 'TenderingProcess','TenderSubmissionDeadlinePeriod','EndTime'])
-    
     # only if they are present in the `pd.DataFrame`...
     if (deadline_date_col in res) and (deadline_time_col in res):
-        
-        # new_column = sproc.structure.assemble_name(['ContractFolderStatus', 'TenderingProcess', 'TenderSubmissionDeadlinePeriod'])
     
         # we don't want to inadvertently overwrite an existing column
         assert deadline_datetime_col not in res
@@ -68,15 +62,14 @@ def typecast_columns(
     
     # -------------------------------------------- updated ---------------------------------------------
     
-    # res['updated'] = pd.to_datetime(input_df['updated'], format='%Y-%m-%dT%H:%M:%S.%f%z', utc=True) # <-------------------
-    # res['updated'] = pd.to_datetime(input_df['updated'], format='%Y-%m-%dT%H:%M:%S.%f%z', utc=True).apply(lambda x: [x]).apply(np.array)
+    # after conversion, each date is wrapped into a list
     res['updated'] = pd.to_datetime(input_df['updated'], format='%Y-%m-%dT%H:%M:%S.%f%z', utc=True).apply(lambda x: [x])
     
     processed_columns.append('updated')
     
     # -------------------------------------------- status  ---------------------------------------------
     
-    # res[status_col] = res[status_col].apply(lambda x: [x]).apply(np.array)
+    # it is wrapped into a list
     res[status_col] = res[status_col].apply(lambda x: [x])
     
     # ---------------------------------------- string columns ------------------------------------------
@@ -133,57 +126,10 @@ assembled_historical_cols = [sproc.structure.assemble_name(c) for c in historica
 assembled_historical_cols
 
 # %% ../nbs/15_postprocess.ipynb 70
-# def summarize_id_history(df: pd.DataFrame) -> pd.DataFrame:
-
-#     if sproc.hier.is_column_multiindexed(df):
-
-#         cols = [sproc.hier.pad_col_levels(df, c) for c in historical_cols]
-
-#     else:
-
-#         cols = assembled_historical_cols
-
-
-#     # it is assumed it's already orderly
-#     res = df.iloc[-1].copy()
-#     # res = df.iloc[-1:].copy()
-
-#     for c in cols:
-
-#         res[c] = df[c].values
-
-#     return res
-
-historical_cols = [['updated'], ['ContractFolderStatus', 'ContractFolderStatusCode']]
-def summarize_id_history(df: pd.DataFrame) -> pd.DataFrame:
-
-    if sproc.hier.is_column_multiindexed(df):
-
-        cols_levels_full = [(c[-1], len(c)-1, sproc.hier.pad_col_levels(df, c)) for c in historical_cols]
-
-    else:
-
-        cols_levels_full = [(e, None, e) for e in historical_cols]
-
-
-    # it is assumed it's already orderly
-    res = df.iloc[-1].copy()
-
-    for c, l, full_name in cols_levels_full:
-
-        res = res.drop(c, level=l)
-        res[full_name] = df[full_name].values
-
-    return res
-
-# %% ../nbs/15_postprocess.ipynb 78
 historical_cols = [['updated'], ['ContractFolderStatus', 'ContractFolderStatusCode']]
 
-# %% ../nbs/15_postprocess.ipynb 82
+# %% ../nbs/15_postprocess.ipynb 72
 def keep_updates_only(df: pd.DataFrame) -> pd.DataFrame:
-
-#     # grouped = df.sort_values('updated').groupby('id', as_index=False)
-#     # return grouped.apply(summarize_id_history)
 
 #     grouped = df.sort_values('updated').groupby('id')
     
@@ -202,13 +148,9 @@ def keep_updates_only(df: pd.DataFrame) -> pd.DataFrame:
     # print(cols)
     
     # a `pd.DataFrame` capturing in a list all the values of the appointed columns for every group
-    # historical_df = df.sort_values('updated').groupby('id')[cols].agg(list) # <---------------------------------
-    # historical_df = df.sort_values('updated', key=np.vectorize(max)).groupby('id')[cols].agg(lambda x: x if len(x)==1 else sum(x, []))
-    # historical_df = df.sort_values('updated', key=np.vectorize(max)).groupby('id')[cols].agg(keep_updates_only_agg_function)
     historical_df = df.sort_values('updated', key=np.vectorize(max)).groupby('id')[cols].agg(lambda x: x if len(x)==1 else np.concatenate(x.tolist()))
     
     # a `pd.DataFrame` just keeping the most recent update for every group
-    # no_duplicates_df = df.sort_values('updated').groupby('id').tail(1) # <---------------------------------
     no_duplicates_df = df.sort_values('updated', key=np.vectorize(max)).groupby('id').tail(1)
     
     assert len(no_duplicates_df) == len(historical_df)
@@ -223,8 +165,7 @@ def keep_updates_only(df: pd.DataFrame) -> pd.DataFrame:
     
     return res
 
-# %% ../nbs/15_postprocess.ipynb 99
+# %% ../nbs/15_postprocess.ipynb 89
 def deduplicate_deleted_series(series: pd.Series) -> pd.Series:
     
-    # return series.sort_values().groupby(axis=0, level='id', group_keys=False).nlargest(1)
     return series.sort_values().groupby(axis=0, level='id', group_keys=False).nsmallest(1)
