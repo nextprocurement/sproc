@@ -212,23 +212,10 @@ def entry_to_series(entry: etree.Element) -> pd.Series:
     return pd.Series(entry_to_dict(entry))
 
 # %% ../nbs/10_xml.ipynb 77
-def to_df(input_file: str | pathlib.Path) -> pd.DataFrame:
-    """
-    Reads and parses an XML file into a `pd.DataFrame`.
-    
-    **Parameters**
-    
-    - input_file: str or Path
-    
-        Input file.
-    
-    **Returns**
-    
-    - out: pd.DataFrame
-    
-        A Pandas DataFrame with XML data.
-    
-    """
+def to_df(
+    input_file: str | pathlib.Path # XML file
+) -> pd.DataFrame: # Data in tabular format
+    "Reads and parses an XML file into a `pd.DataFrame`"
     
     tree = etree.parse(input_file)
     root = tree.getroot()
