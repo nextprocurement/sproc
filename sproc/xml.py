@@ -52,23 +52,10 @@ def get_deleted_entries(root: etree.Element) -> list[etree.Element]:
     return [e for e in root if split_namespace_tag(e.tag)[1] == 'deleted-entry']
 
 # %% ../nbs/10_xml.ipynb 43
-def deleted_to_series(input_file: str | pathlib.Path) -> pd.Series:
-    """
-    Reads and parses "deleted" entries in an XML file.
-    
-    **Parameters**
-    
-    - input_file: str or Path
-    
-        Input file.
-    
-    **Returns**
-    
-    - out: pd.Series
-    
-        A Pandas Series with XML data.
-    
-    """
+def deleted_to_series(
+    input_file: str | pathlib.Path # XML file
+) -> pd.Series: # A Pandas Series with XML data
+    "Reads and parses 'deleted' entries in an XML file."
     
     tree = etree.parse(input_file)
     root = tree.getroot()

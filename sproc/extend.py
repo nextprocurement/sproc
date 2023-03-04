@@ -16,7 +16,7 @@ import sproc.io
 import sproc.assemble
 import sproc.postprocess
 
-# %% ../nbs/70_extend.ipynb 65
+# %% ../nbs/70_extend.ipynb 67
 def df_with_zip(
     history_df: pd.DataFrame, # DataFrame to be extended
     zip_file: str | pathlib.Path, # Zip file with new data
@@ -89,7 +89,7 @@ def df_with_zip(
     
         return res
 
-# %% ../nbs/70_extend.ipynb 67
+# %% ../nbs/70_extend.ipynb 69
 def parquet_with_zip(
     history_file: str | pathlib.Path, # DataFrame to be extended
     zip_file: str | pathlib.Path, # Zip file with new data

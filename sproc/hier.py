@@ -2,7 +2,7 @@
 
 # %% auto 0
 __all__ = ['flat_series_to_multiindexed_series', 'flat_df_to_multiindexed_df', 'pad_col_levels', 'columns_containing',
-           'flatten_columns_names']
+           'is_column_multiindexed', 'flatten_columns_names']
 
 # %% ../nbs/30_hierarchical.ipynb 2
 import pathlib
@@ -13,10 +13,10 @@ import numpy as np
 from lxml import etree
 import yaml
 
-import sproc.xml
+# import sproc.xml
 import sproc.structure
 
-# %% ../nbs/30_hierarchical.ipynb 24
+# %% ../nbs/30_hierarchical.ipynb 26
 def flat_series_to_multiindexed_series(
     s: pd.Series # Flat series
 ) -> pd.Series: # Multi-indexed series
@@ -31,7 +31,7 @@ def flat_series_to_multiindexed_series(
         
     return pd.Series(values, index=pd.MultiIndex.from_tuples(index_paths))
 
-# %% ../nbs/30_hierarchical.ipynb 34
+# %% ../nbs/30_hierarchical.ipynb 36
 def flat_df_to_multiindexed_df(
     input_df: pd.DataFrame # Input dataframe
 ) -> pd.DataFrame: # A column-hierarchical version of the input dataframe
@@ -59,33 +59,36 @@ def flat_df_to_multiindexed_df(
     
     return res
 
-# %% ../nbs/30_hierarchical.ipynb 47
-def pad_col_levels(df: pd.DataFrame, levels: tuple | list, denan: bool = False) -> tuple:
+# %% ../nbs/30_hierarchical.ipynb 49
+def pad_col_levels(
+    df: pd.DataFrame, # Input
+    levels: tuple | list, # Individual names to assemble and pad
+    denan: bool = False # If `True`, skip `pd.NA`s
+    ) -> tuple: # Multiindex column name
+    "Builds a multiindex-amenable column name from a sequence of levels."
     
     # if "de-NaN" was requested...
     if denan:
         levels = [e for e in levels if pd.notna(e)]
     
-    # if any([np.nan in c for c in df.columns]):
-    #     nan_marker = np.nan
-    # elif any(['nan' in c for c in df.columns]):
-    #     nan_marker = 'nan'
-    # else:
-    #     raise Exception('marker of empty levels could not be guessed')
-    
     return tuple(list(levels) + [''] * (df.columns.nlevels - len(levels)))
-    # return tuple(list(levels) + [np.nan] * (df.columns.nlevels - len(levels)))
-    # return tuple(list(levels) + ['nan'] * (df.columns.nlevels - len(levels)))
-    # return tuple(list(levels) + [nan_marker] * (df.columns.nlevels - len(levels)))
 
-# %% ../nbs/30_hierarchical.ipynb 55
+# %% ../nbs/30_hierarchical.ipynb 57
 def columns_containing(df: pd.DataFrame, substring: str):
     
     is_contained = [list(filter(lambda e: (type(e) != float) and (substring in e), c)) != [] for c in df.columns]
     
     return df.columns[is_contained]
 
-# %% ../nbs/30_hierarchical.ipynb 74
+# %% ../nbs/30_hierarchical.ipynb 60
+def is_column_multiindexed(
+    df: pd.DataFrame # Input
+    ) -> bool: # Assessment
+    "Returns `True` if the given `pd.DataFrame` is column-multiindex."
+
+    return type(df.columns) == pd.MultiIndex
+
+# %% ../nbs/30_hierarchical.ipynb 80
 def _data_scheme_ok(data_scheme: dict) -> bool:
     
     lengths = []
@@ -102,7 +105,7 @@ def _data_scheme_ok(data_scheme: dict) -> bool:
     return True
     # return np.unique(lengths).shape[0] == 1 # <-------------------------- TODO: required?
 
-# %% ../nbs/30_hierarchical.ipynb 84
+# %% ../nbs/30_hierarchical.ipynb 90
 def flatten_columns_names(
     df: pd.DataFrame, # Input
     data_scheme: dict # Every key is a flattened name, and every value a list with the different levels of the multi-index

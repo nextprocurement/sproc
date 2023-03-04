@@ -28,5 +28,10 @@
 			"**/styles.css": true,
 			"**/.directory": true
 		},
+		"cSpell.words": [
+			"multiindex",
+			"multiindexed",
+			"sproc"
+		],
 	}
 }
