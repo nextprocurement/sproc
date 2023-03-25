@@ -25,7 +25,8 @@ def file(
     url: str, # URL for the file to be downloaded
     output_file: str | pathlib.Path | None, # Name of the local file to be saved; if `None` its content is returned
     timeout: float = 2. # How long to wait for a response
-    ) -> None | bytes:
+    ) -> None | bytes: # Content of the file or `None` if `output_file` was passed
+    "Downloads a file"
 
     pool_manager = urllib3.PoolManager(cert_reqs='CERT_NONE')
 

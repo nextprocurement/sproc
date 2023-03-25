@@ -28,12 +28,11 @@ tables = {
         'naming_filename': 'insiders_minors.yaml'
         }
     }
-tables
 
-# %% ../nbs/05_structure.ipynb 15
+# %% ../nbs/05_structure.ipynb 16
 nested_tags_separator = ' - '
 
-# %% ../nbs/05_structure.ipynb 19
+# %% ../nbs/05_structure.ipynb 20
 def assemble_name(
     tags: list # Tags
     ) -> str: # Name
@@ -44,7 +43,7 @@ def assemble_name(
     
     return nested_tags_separator.join(tags)
 
-# %% ../nbs/05_structure.ipynb 27
+# %% ../nbs/05_structure.ipynb 28
 def is_multivalued(
     s: pd.Series # Input
     ) -> bool: # `True` if the input contains some `list`
@@ -52,7 +51,7 @@ def is_multivalued(
     
     return s.apply(lambda x: (type(x) == list) or (type(x) == np.ndarray)).any()
 
-# %% ../nbs/05_structure.ipynb 32
+# %% ../nbs/05_structure.ipynb 33
 def multivalued_columns(
     df: pd.DataFrame # Input
     ) -> list: # Columns' names

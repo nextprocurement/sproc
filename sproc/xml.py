@@ -22,6 +22,7 @@ def get_namespaces(
     input_file: str | pathlib.Path, # XML file
     root_name: str = 'base' # Name of the root element
     ) -> dict[str, str]: # Mapping from *tag* to *namespace*
+    "Returns the namespaces in the input XML file"
     
     tree = etree.parse(input_file)
     
@@ -37,17 +38,26 @@ def get_namespaces(
 re_tag = re.compile('\{(.*)\}(.*)')
 
 # %% ../nbs/10_xml.ipynb 20
-def split_namespace_tag(namespace_tag: str) -> str:
+def split_namespace_tag(
+    namespace_tag: str # Input
+    ) -> tuple[str]: # Namespace and tag
+    'Splits a hierarchical "address" in an XML file into *namespace* and *tag*'
     
     return re_tag.match(namespace_tag).groups()
 
 # %% ../nbs/10_xml.ipynb 26
-def get_entries(root: etree.Element) -> list[etree.Element]:
+def get_entries(
+    root: etree.Element # XML root
+    ) -> list[etree.Element]: # Entries
+    "Returns all the entries hanging from the input"
     
     return [e for e in root if split_namespace_tag(e.tag)[1] == 'entry']
 
 # %% ../nbs/10_xml.ipynb 37
-def get_deleted_entries(root: etree.Element) -> list[etree.Element]:
+def get_deleted_entries(
+    root: etree.Element # XML root
+    ) -> list[etree.Element]: # *Deleted* entries
+    "Returns all the *deleted* entries hanging from the input"
     
     return [e for e in root if split_namespace_tag(e.tag)[1] == 'deleted-entry']
 
@@ -207,7 +217,10 @@ def entry_to_dict(
     return res
 
 # %% ../nbs/10_xml.ipynb 68
-def entry_to_series(entry: etree.Element) -> pd.Series:
+def entry_to_series(
+    entry: etree.Element # Input
+    ) -> pd.Series: # Output
+    "Turns an XML element into a Pandas' series"
 
     return pd.Series(entry_to_dict(entry))
 
@@ -224,28 +237,18 @@ def to_df(
     return pd.concat([entry_to_series(e) for e in entries], axis=1).T
 
 # %% ../nbs/10_xml.ipynb 80
-def to_curated_df(input_file: str | pathlib.Path) -> pd.DataFrame:
-    """
-    Reads, parses and tidies up an XML file into a `pd.DataFrame`.
-    
-    **Parameters**
-    
-    - input_file: str or Path
-    
-        Input file.
-    
-    **Returns**
-    
-    - out: pd.DataFrame
-    
-        A Pandas DataFrame with XML data.
-    
-    """
+def to_curated_df(
+    input_file: str | pathlib.Path # Input file
+    ) -> pd.DataFrame: # A Pandas DataFrame with XML data
+    "Reads, parses and tidies up an XML file into a `pd.DataFrame`"
     
     return sproc.postprocess.typecast_columns(to_df(input_file))
 
 # %% ../nbs/10_xml.ipynb 86
-def columns_depth(df: pd.DataFrame) -> pd.Series:
+def columns_depth(
+    df: pd.DataFrame # Input
+    ) -> pd.Series: # Depths
+    "Returns the depth, inside the original XML, of every column"
 
     n_nestings = df.columns.str.extractall(f'(\\S{sproc.structure.nested_tags_separator}\\S)')
     n_nestings.index.names = ['column', 'match']

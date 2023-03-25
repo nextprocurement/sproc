@@ -19,7 +19,7 @@ pages](https://manuvazquez.github.io/sproc/) of the project.
 
 ## Install
 
-    pip install git+https://github.com/manuvazquez/sproc@main
+    pip install git+https://github.com/nextprocurement/sproc@main
 
 should do.
 
@@ -33,12 +33,12 @@ The software can be exploited as a library or as *standalone* scripts.
 
 `sproc_dl` command is the work-horse of the library. It allows
 downloading *all* the data of a given `kind` into a *parquet* file, that
-later on can be updated invoking the same command. Running, e.g.,
+later can be updated invoking the same command. Running, e.g.,
 
     sproc_dl outsiders
 
 will download all the *aggregated* procurement data (excluding minor
-contracts), and write a `outsiders.parquet` file. Argument `-o` can be
+contracts), and write an `outsiders.parquet` file. Argument `-o` can be
 used to specify a directory other than the current one. Instead of
 `outsiders`, one can pass `insiders` or `minors`.
 

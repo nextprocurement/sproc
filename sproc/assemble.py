@@ -16,7 +16,11 @@ import sproc.postprocess
 import sproc.parse
 
 # %% ../nbs/60_assemble.ipynb 19
-def merge_deleted(data_df: pd.DataFrame, deleted_series: pd.Series) -> pd.DataFrame:
+def merge_deleted(
+    data_df: pd.DataFrame, # Input data
+    deleted_series: pd.Series # Deleted entries
+    ) -> pd.DataFrame: # Input with new `deleted_on` column
+    "Adds a new column with the date on which an entry was deleted or `pd.NaT` if it was not"
 
     # if the `deleted_series` is empty
     if deleted_series.empty:
@@ -45,7 +49,11 @@ def merge_deleted(data_df: pd.DataFrame, deleted_series: pd.Series) -> pd.DataFr
     return res.reset_index().set_index(['zip', 'file name', 'entry'])
 
 # %% ../nbs/60_assemble.ipynb 31
-def parquet_amenable(df: pd.DataFrame, inplace: bool = False) -> pd.DataFrame:
+def parquet_amenable(
+    df: pd.DataFrame, # Input `DataFrame` to be "tuned" for parquet
+    inplace: bool = False # If `True`, the input is modified
+    ) -> pd.DataFrame: # Parquet-ready `DataFrame`
+    "*Tunes* a `pd.DataFrame` so that it can saved in a parquet file"
     
     if inplace:
         
@@ -70,7 +78,11 @@ def parquet_amenable(df: pd.DataFrame, inplace: bool = False) -> pd.DataFrame:
     return res
 
 # %% ../nbs/60_assemble.ipynb 49
-def stack(top_df: pd.DataFrame, bottom_df: pd.DataFrame) -> pd.DataFrame:
+def stack(
+    top_df: pd.DataFrame, # Top
+    bottom_df: pd.DataFrame # Bottom
+    ) -> pd.DataFrame: # Stacked `pd.DataFrames`
+    "Stacks one `pd.DataFrame` on top of another"
     
     assert top_df.index.names == bottom_df.index.names, 'DataFrames are expected to have indexes with the same names'
     
@@ -100,7 +112,10 @@ def stack(top_df: pd.DataFrame, bottom_df: pd.DataFrame) -> pd.DataFrame:
     return pd.concat((top_df, bottom_df), axis=0)
 
 # %% ../nbs/60_assemble.ipynb 56
-def distilled_data_from_zip(zip_file: pathlib.Path | str) -> tuple[pd.DataFrame, pd.Series]:
+def distilled_data_from_zip(
+    zip_file: pathlib.Path | str # Input file
+    ) -> tuple[pd.DataFrame, pd.Series]: # Data, deleted entries
+    "Reads a zip file and extracts the data and deleted entries"
     
     # in case a `str` was passed
     zip_file = pathlib.Path(zip_file)
@@ -119,8 +134,12 @@ def distilled_data_from_zip(zip_file: pathlib.Path | str) -> tuple[pd.DataFrame,
     
     return last_update_only_df, deleted_series
 
-# %% ../nbs/60_assemble.ipynb 66
-def sparsity(df: pd.DataFrame, tidy_up: bool = False, do_not_modify_input: bool = True) -> pd.DataFrame:
+# %% ../nbs/60_assemble.ipynb 68
+def sparsity(
+    df: pd.DataFrame, # Input
+    tidy_up: bool = False, # If `True` columns are ordered
+    do_not_modify_input: bool = True # If `True` no *domain* column is added to the input
+    ) -> pd.DataFrame: # Output
     "Ratio of completeness for every (identified) administration"
     
     # a new `Domain` column is added
@@ -143,7 +162,7 @@ def sparsity(df: pd.DataFrame, tidy_up: bool = False, do_not_modify_input: bool 
         
     if do_not_modify_input:
     
-        # the added column is droppedsproc.postprocess.deduplicate_deleted_series(another_distilled_series)
+        # the added column is dropped
         df.drop(domain_col, axis=1, inplace=True)
     
     return filled_in_ratio_df

@@ -2,7 +2,7 @@
 
 # %% auto 0
 __all__ = ['flat_series_to_multiindexed_series', 'flat_df_to_multiindexed_df', 'pad_col_levels', 'columns_containing',
-           'is_column_multiindexed', 'flatten_columns_names']
+           'is_column_multiindexed', 'data_scheme_ok', 'flatten_columns_names']
 
 # %% ../nbs/30_hierarchical.ipynb 2
 import pathlib
@@ -33,8 +33,8 @@ def flat_series_to_multiindexed_series(
 
 # %% ../nbs/30_hierarchical.ipynb 36
 def flat_df_to_multiindexed_df(
-    input_df: pd.DataFrame # Input dataframe
-) -> pd.DataFrame: # A column-hierarchical version of the input dataframe
+    input_df: pd.DataFrame # Input `DataFrame`
+) -> pd.DataFrame: # A column-hierarchical version of the input `DataFrame`
     "Reads and parses an XML file into a `DataFrame`"
     
     # every field becomes a `tuple`
@@ -74,7 +74,11 @@ def pad_col_levels(
     return tuple(list(levels) + [''] * (df.columns.nlevels - len(levels)))
 
 # %% ../nbs/30_hierarchical.ipynb 57
-def columns_containing(df: pd.DataFrame, substring: str):
+def columns_containing(
+    df: pd.DataFrame, # Input
+    substring: str # Substring to be searched
+    ):
+    "Return the columns whose name contain a given substring"
     
     is_contained = [list(filter(lambda e: (type(e) != float) and (substring in e), c)) != [] for c in df.columns]
     
@@ -89,7 +93,10 @@ def is_column_multiindexed(
     return type(df.columns) == pd.MultiIndex
 
 # %% ../nbs/30_hierarchical.ipynb 80
-def _data_scheme_ok(data_scheme: dict) -> bool:
+def data_scheme_ok(
+    data_scheme: dict # Data scheme: every `key` a name, every `value` a *path*
+    ) -> bool: # `True` if the data scheme is fine
+    "Checks whether a data scheme is correct"
     
     lengths = []
     
@@ -112,7 +119,7 @@ def flatten_columns_names(
     , inplace: bool = False # If `True` the input DataFrame is modified
     ) -> None | pd.DataFrame: # Flat DataFrame
     
-    assert _data_scheme_ok(data_scheme), f'data scheme is not OK'
+    assert data_scheme_ok(data_scheme), f'data scheme is not OK'
     
     # the inverse of the above mapping (turning nan's into empty strings, and concatenating all the levels together)
     inv_data_scheme = {''.join([e if pd.notna(e) else '' for e in v]): k for k, v in data_scheme.items()}

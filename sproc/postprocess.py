@@ -129,7 +129,10 @@ assembled_historical_cols
 historical_cols = [['updated'], ['ContractFolderStatus', 'ContractFolderStatusCode']]
 
 # %% ../nbs/15_postprocess.ipynb 72
-def keep_updates_only(df: pd.DataFrame) -> pd.DataFrame:
+def keep_updates_only(
+    df: pd.DataFrame # Input
+    ) -> pd.DataFrame: # Output
+    "Keep only the last update for every collection of entries with the same `id`"
 
 #     grouped = df.sort_values('updated').groupby('id')
     
