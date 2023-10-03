@@ -241,7 +241,7 @@ def cli_read_zips(
 # %% ../nbs/00_core.ipynb 46
 def dl(
     kind: str, # One of 'outsiders', 'insiders', or 'minors'
-    output_directory: str | pathlib.Path # The path where hosting
+    output_directory: str | pathlib.Path # The path where data is to be stored
     ):
     "Download data or update local one"
 

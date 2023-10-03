@@ -14,7 +14,7 @@ This project was developed with
 from a [Jupyter](https://jupyter.org/) notebook that contains the code,
 along with tests and documentation. If you are interested in the inner
 workings of any module you can check its corresponding notebook in the
-corresponding section of the [github
+appropriate section of the [github
 pages](https://manuvazquez.github.io/sproc/) of the project.
 
 ## Install
@@ -57,7 +57,7 @@ or, if [wget](https://www.gnu.org/software/wget/) is available, running
 
 Running
 
-    sproc_process_zip.py PlataformasAgregadasSinMenores_2018.zip 2018.parquet
+    sproc_read_single_zip.py PlataformasAgregadasSinMenores_2018.zip 2018.parquet
 
 outputs the file `2018.parquet` (the name being given by the 2nd
 argument), which contains a `pd.DataFrame` with all the 2018 metadata.

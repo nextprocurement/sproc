@@ -233,16 +233,36 @@ def to_df(
     tree = etree.parse(input_file)
     root = tree.getroot()
     entries = get_entries(root)
+
+    # if the input file was empty....
+    if not entries:
+
+        print(f'no entries were found in {input_file.name}')
+
+        return pd.DataFrame()
+
+    # if the the input file was NOT empty
+    else:
     
-    return pd.concat([entry_to_series(e) for e in entries], axis=1).T
+        return pd.concat([entry_to_series(e) for e in entries], axis=1).T
 
 # %% ../nbs/10_xml.ipynb 80
 def to_curated_df(
     input_file: str | pathlib.Path # Input file
     ) -> pd.DataFrame: # A Pandas DataFrame with XML data
     "Reads, parses and tidies up an XML file into a `pd.DataFrame`"
+
+    raw_df = to_df(input_file)
+
+    # if the input file was empty....
+    if raw_df.empty:
+
+        return raw_df
     
-    return sproc.postprocess.typecast_columns(to_df(input_file))
+    # if the the input file was NOT empty
+    else:
+    
+        return sproc.postprocess.typecast_columns(raw_df)
 
 # %% ../nbs/10_xml.ipynb 86
 def columns_depth(

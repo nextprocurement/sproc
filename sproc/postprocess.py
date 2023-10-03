@@ -54,7 +54,11 @@ def typecast_columns(
         # we don't want to inadvertently overwrite an existing column
         assert deadline_datetime_col not in res
     
-        res[deadline_datetime_col] = pd.to_datetime(input_df[deadline_date_col] + 'T' + input_df[deadline_time_col], format='%Y-%m-%dT%H:%M:%S', utc=True, errors='coerce')   
+        res[deadline_datetime_col] = pd.to_datetime(
+            input_df[deadline_date_col] + 'T' + input_df[deadline_time_col],
+            format='%Y-%m-%dT%H:%M:%S',
+            utc=True, errors='coerce'
+        )
     
         processed_columns.append(deadline_datetime_col)
     
@@ -63,7 +67,12 @@ def typecast_columns(
     # -------------------------------------------- updated ---------------------------------------------
     
     # after conversion, each date is wrapped into a list
-    res['updated'] = pd.to_datetime(input_df['updated'], format='%Y-%m-%dT%H:%M:%S.%f%z', utc=True).apply(lambda x: [x])
+    res['updated'] = pd.to_datetime(
+        input_df['updated'],
+        # format='%Y-%m-%dT%H:%M:%S.%f%z',
+        format='mixed',
+        utc=True
+    ).apply(lambda x: [x])
     
     processed_columns.append('updated')
     

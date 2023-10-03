@@ -6,7 +6,7 @@ NAME=sproc
 
 LIBRARIES=(
     jupyterlab jupyter_console
-    nbdev">"2.3
+    nbdev"="2.3.11
     colorama
     python-magic
     pyyaml

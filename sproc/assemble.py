@@ -15,7 +15,7 @@ import sproc.io
 import sproc.postprocess
 import sproc.parse
 
-# %% ../nbs/60_assemble.ipynb 19
+# %% ../nbs/60_assemble.ipynb 18
 def merge_deleted(
     data_df: pd.DataFrame, # Input data
     deleted_series: pd.Series # Deleted entries
@@ -48,7 +48,7 @@ def merge_deleted(
     # on return, the index is left as it was
     return res.reset_index().set_index(['zip', 'file name', 'entry'])
 
-# %% ../nbs/60_assemble.ipynb 31
+# %% ../nbs/60_assemble.ipynb 30
 def parquet_amenable(
     df: pd.DataFrame, # Input `DataFrame` to be "tuned" for parquet
     inplace: bool = False # If `True`, the input is modified
@@ -77,7 +77,7 @@ def parquet_amenable(
     
     return res
 
-# %% ../nbs/60_assemble.ipynb 49
+# %% ../nbs/60_assemble.ipynb 48
 def stack(
     top_df: pd.DataFrame, # Top
     bottom_df: pd.DataFrame # Bottom
@@ -111,7 +111,7 @@ def stack(
         
     return pd.concat((top_df, bottom_df), axis=0)
 
-# %% ../nbs/60_assemble.ipynb 56
+# %% ../nbs/60_assemble.ipynb 55
 def distilled_data_from_zip(
     zip_file: pathlib.Path | str # Input file
     ) -> tuple[pd.DataFrame, pd.Series]: # Data, deleted entries
@@ -134,7 +134,7 @@ def distilled_data_from_zip(
     
     return last_update_only_df, deleted_series
 
-# %% ../nbs/60_assemble.ipynb 68
+# %% ../nbs/60_assemble.ipynb 67
 def sparsity(
     df: pd.DataFrame, # Input
     tidy_up: bool = False, # If `True` columns are ordered
