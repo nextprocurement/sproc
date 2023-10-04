@@ -175,8 +175,8 @@ def entry_to_dict(
     # for every "child" of `entry` ...
     for e in entry:
         
-        # ...the *namespace* and *tag* are extracted
-        namespace, tag = split_namespace_tag(e.tag)
+        # ...the *tag* are extracted
+        _, tag = split_namespace_tag(e.tag)
         
         # for the sake of readability
         value = e.text
@@ -200,6 +200,14 @@ def entry_to_dict(
             
             # the value of this element (whether the original text or the obtained number) is stored
             set_or_append(res, tag, value)
+
+        if tag == 'ID' and ('schemeName' in e.attrib):
+
+            # print(f'Yep...{e.attrib.keys()}')
+
+            res[tag + 'schemeName'] = e.attrib['schemeName']
+
+        # print(tag)
         
         # if in "recursive mode" and this element has children (`len(e)` is different from 0)...
         if recursive and len(e):
@@ -216,7 +224,7 @@ def entry_to_dict(
     
     return res
 
-# %% ../nbs/10_xml.ipynb 68
+# %% ../nbs/10_xml.ipynb 70
 def entry_to_series(
     entry: etree.Element # Input
     ) -> pd.Series: # Output
@@ -224,7 +232,7 @@ def entry_to_series(
 
     return pd.Series(entry_to_dict(entry))
 
-# %% ../nbs/10_xml.ipynb 77
+# %% ../nbs/10_xml.ipynb 79
 def to_df(
     input_file: str | pathlib.Path # XML file
 ) -> pd.DataFrame: # Data in tabular format
@@ -246,7 +254,7 @@ def to_df(
     
         return pd.concat([entry_to_series(e) for e in entries], axis=1).T
 
-# %% ../nbs/10_xml.ipynb 80
+# %% ../nbs/10_xml.ipynb 82
 def to_curated_df(
     input_file: str | pathlib.Path # Input file
     ) -> pd.DataFrame: # A Pandas DataFrame with XML data
@@ -264,7 +272,7 @@ def to_curated_df(
     
         return sproc.postprocess.typecast_columns(raw_df)
 
-# %% ../nbs/10_xml.ipynb 86
+# %% ../nbs/10_xml.ipynb 88
 def columns_depth(
     df: pd.DataFrame # Input
     ) -> pd.Series: # Depths
