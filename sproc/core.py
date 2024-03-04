@@ -238,11 +238,33 @@ def cli_read_zips(
     
     print(f'writing {output_file}...')
 
+def unify_colname(col):
+    return ".".join([el for el in col if el])
+
+def generar_mapeo_col_aplanadas(df):
+    """
+    Genera un mapeo de nombres de columnas aplanados a sus nombres originales en MultiIndex.
+    """
+    mapeo = {}
+    for col in df.columns:
+        nombre_aplanado = unify_colname(col)
+        mapeo[nombre_aplanado] = col  
+    return mapeo
+
+def value_to_str(value):  
+    """
+    Convierte un valor float a una cadena str.
+    Si el valor no es un flotante, se devuelve el valor original.
+    """
+    if isinstance(value, float):
+        return str(value)
+    return value
+
 # %% ../nbs/00_core.ipynb 46
 def dl(
     kind: str, # One of 'outsiders', 'insiders', or 'minors'
     output_directory: str | pathlib.Path # The path where data is to be stored
-    ):
+    ): 
     "Download data or update local one"
 
     # `kind` should be one of the pre-set types
@@ -311,6 +333,20 @@ def dl(
     # tidy up the `DataFrame` so that it can be saved in a parquet file
     parquet_df = sproc.assemble.parquet_amenable(history_df)
     
+    # Generar el mapeo de columnas aplanadas
+    mapeo_col_aplanadas = generar_mapeo_col_aplanadas(parquet_df)
+    
+    # Aplicar la función value_to_str específicamente a la columna deseada
+    columna_objetivo = 'ContractFolderStatus.TenderingTerms.FundingProgram'
+
+    # Verificar si la columna objetivo está en el mapeo de columnas aplanadas
+    if columna_objetivo in mapeo_col_aplanadas:
+        # Acceder a la columna usando el nombre original (MultiIndex) y aplicar la modificación
+        col_original = mapeo_col_aplanadas[columna_objetivo]
+        parquet_df[col_original] = parquet_df[col_original].apply(lambda x: value_to_str(x))
+    else:
+        print(f"La columna '{columna_objetivo}' no se encontró en el DataFrame.")
+
     # parquet_df.to_parquet(output_file.with_stem('new'))
     parquet_df.to_parquet(output_file)
 

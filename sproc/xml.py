@@ -175,9 +175,9 @@ def entry_to_dict(
     # for every "child" of `entry` ...
     for e in entry:
         
-        # ...the *tag* are extracted
+        # ...the *tag* are extractedss
         _, tag = split_namespace_tag(e.tag)
-        
+         
         # for the sake of readability
         value = e.text
             
@@ -195,17 +195,23 @@ def entry_to_dict(
                     
                     # ...conversion is performed
                     value = int(value)
-            
+
             # assert tag not in res, f'multiple values for {tag}'
-            
+
             # the value of this element (whether the original text or the obtained number) is stored
             set_or_append(res, tag, value)
-
+       
         if tag == 'ID' and ('schemeName' in e.attrib):
 
             # print(f'Yep...{e.attrib.keys()}')
 
             res[tag + 'schemeName'] = e.attrib['schemeName']
+
+        # if the tag is "link" and it has a "href" attribute..
+        if tag == "link" and ('href' in e.attrib):
+            # Update to take the link field
+            value = e.attrib['href']
+            set_or_append(res, tag, value)
 
         # print(tag)
         
@@ -221,7 +227,7 @@ def entry_to_dict(
                 key_name = f'{tag}{sproc.structure.nested_tags_separator}{k}'
                 
                 set_or_append(res, key_name, v)
-    
+        
     return res
 
 # %% ../nbs/10_xml.ipynb 70
