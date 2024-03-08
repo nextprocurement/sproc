@@ -15,7 +15,7 @@ from a [Jupyter](https://jupyter.org/) notebook that contains the code,
 along with tests and documentation. If you are interested in the inner
 workings of any module you can check its corresponding notebook in the
 appropriate section of the [github
-pages](https://manuvazquez.github.io/sproc/) of the project.
+pages](https://nextprocurement.github.io/sproc/) of the project.
 
 ## Install
 
