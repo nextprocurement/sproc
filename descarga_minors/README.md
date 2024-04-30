@@ -1,5 +1,3 @@
-{================
-
 Este código en Python está diseñado para descargar y *analizar* los datos de contratos menores de los portales de transparencia de los Ayuntamientos de Zaragoza y Madrid. Los resultados se guardan en archivos en formato JSON que pueden ser leídos fácilmente en muchos lenguajes de programación.
 
 Este proyecto se desarrolló con herramientas estándar de Python, y cada función está documentada para facilitar su comprensión y uso. Si te interesa conocer el funcionamiento interno de alguna función, puedes revisar el código directamente en el archivo fuente.
@@ -25,7 +23,7 @@ El comando principal para ejecutar el script es el siguiente, donde debes especi
 
 ### Funcionamiento detallado
 
-El script `download_contracts_zaragoza` y `download_contracts_madrid` son las funciones principales para descargar los datos de contratos menores de Zaragoza y Madrid respectivamente. Estas funciones gestionan la paginación de los datos y aseguran la integridad de las descargas mediante la comprobación de errores en las respuestas HTTP.
+El script tienes las funciones de `download_contracts_zaragoza` y `download_contracts_madrid` que son las funciones principales para descargar los datos de contratos menores de Zaragoza y Madrid respectivamente. Estas funciones gestionan la paginación de los datos y aseguran la integridad de las descargas mediante la comprobación de errores en las respuestas HTTP.
 
 #### Procesando un solo archivo JSON
 
@@ -33,6 +31,4 @@ Por ejemplo, al ejecutar el script para Zaragoza, se descargan todos los contrat
 
 #### Procesando datos de Madrid
 
-Para Madrid, el script descarga archivos directamente desde los enlaces encontrados en la página de transparencia. Puedes especificar el año inicial con `--start_year`, y solo se descargarán los contratos de ese año en adelante.
-
-}================
+Para Madrid, el script descarga archivos directamente desde los enlaces encontrados en la página de transparencia. Puedes especificar el año inicial con `--start_year`, y solo se descargarán los contratos de ese año en adelante. Por defectose descargan a partir del 2018 incluido.
