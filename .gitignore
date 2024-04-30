@@ -157,3 +157,7 @@ wiki
 data
 notebooks
 *.parquet
+
+# folders
+minors_madrid/
+minors_zaragoza/
