@@ -336,17 +336,14 @@ def dl(
     # Generar el mapeo de columnas aplanadas
     mapeo_col_aplanadas = generar_mapeo_col_aplanadas(parquet_df)
     
-    # Aplicar la función value_to_str específicamente a la columna deseada
-    columna_objetivo = 'ContractFolderStatus.TenderingTerms.FundingProgram'
-
-    # Verificar si la columna objetivo está en el mapeo de columnas aplanadas
-    if columna_objetivo in mapeo_col_aplanadas:
-        # Acceder a la columna usando el nombre original (MultiIndex) y aplicar la modificación
-        col_original = mapeo_col_aplanadas[columna_objetivo]
-        parquet_df[col_original] = parquet_df[col_original].apply(lambda x: value_to_str(x))
-    else:
-        print(f"La columna '{columna_objetivo}' no se encontró en el DataFrame.")
-
+    columna_objetivo = ('ContractFolderStatus.TenderingTerms.FundingProgram', 'ContractFolderStatus.TenderingTerms.ProcurementNationalLegislationCode')
+    
+    for col_obj in columna_objetivo:
+        if col_obj in mapeo_col_aplanadas:
+            col_original = mapeo_col_aplanadas[col_obj]
+            parquet_df[col_original] = parquet_df[col_original].apply(lambda x: value_to_str(x))
+        else:
+            print(f"La columna '{col_obj}' no se encontró en el DataFrame. Pero la descarga se ha completado correctamente")
     # parquet_df.to_parquet(output_file.with_stem('new'))
     parquet_df.to_parquet(output_file)
 
