@@ -1,0 +1,4099 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.554">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Code for dealing with multiindexed columns">
+
+<title>sproc - hier</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="sproc - hier">
+<meta property="og:description" content="Code for dealing with multiindexed columns">
+<meta property="og:site_name" content="sproc">
+<meta name="twitter:title" content="sproc - hier">
+<meta name="twitter:description" content="Code for dealing with multiindexed columns">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">sproc</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./hierarchical.html">hier</a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">sproc</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">core</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./structure.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">structure</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./xml.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">xml</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./postprocess.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">postprocess</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bundle.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bundle</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./hierarchical.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">hier</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./io.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">io</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./parse.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">parse</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./assemble.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">assemble</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./extend.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">extend</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./download.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">download</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#series" id="toc-series" class="nav-link active" data-scroll-target="#series">Series</a>
+  <ul class="collapse">
+  <li><a href="#flat_series_to_multiindexed_series" id="toc-flat_series_to_multiindexed_series" class="nav-link" data-scroll-target="#flat_series_to_multiindexed_series">flat_series_to_multiindexed_series</a></li>
+  </ul></li>
+  <li><a href="#dataframe" id="toc-dataframe" class="nav-link" data-scroll-target="#dataframe">DataFrame</a>
+  <ul class="collapse">
+  <li><a href="#flat_df_to_multiindexed_df" id="toc-flat_df_to_multiindexed_df" class="nav-link" data-scroll-target="#flat_df_to_multiindexed_df">flat_df_to_multiindexed_df</a></li>
+  </ul></li>
+  <li><a href="#util" id="toc-util" class="nav-link" data-scroll-target="#util">Util</a>
+  <ul class="collapse">
+  <li><a href="#pad_col_levels" id="toc-pad_col_levels" class="nav-link" data-scroll-target="#pad_col_levels">pad_col_levels</a></li>
+  <li><a href="#columns_containing" id="toc-columns_containing" class="nav-link" data-scroll-target="#columns_containing">columns_containing</a></li>
+  <li><a href="#is_column_multiindexed" id="toc-is_column_multiindexed" class="nav-link" data-scroll-target="#is_column_multiindexed">is_column_multiindexed</a></li>
+  <li><a href="#flattening-and-renaming-columns" id="toc-flattening-and-renaming-columns" class="nav-link" data-scroll-target="#flattening-and-renaming-columns">Flattening and renaming columns</a></li>
+  <li><a href="#data_scheme_ok" id="toc-data_scheme_ok" class="nav-link" data-scroll-target="#data_scheme_ok">data_scheme_ok</a></li>
+  <li><a href="#flatten_columns_names" id="toc-flatten_columns_names" class="nav-link" data-scroll-target="#flatten_columns_names">flatten_columns_names</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/manuvazquez/sproc/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">hier</h1>
+</div>
+
+<div>
+  <div class="description">
+    Code for dealing with multiindexed columns
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<p>In order to avoid circular dependencies in the resulting <em>Python</em> modules, and since this is only for testing</p>
+<div id="aad07d8a" class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sproc.xml</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Directory where the data (<em>XML</em> files) are stored</p>
+<div id="00682f2d-6641-4618-ac1b-ddcdfd988039" class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>directory <span class="op">=</span> pathlib.Path.cwd().parent <span class="op">/</span> <span class="st">'samples'</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> directory.exists()</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>directory</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>PosixPath('/home/manu/Sync/UC3M/proyectos/2022/nextProcurement/sproc/samples')</code></pre>
+</div>
+</div>
+<p>A (sample) file in that directory</p>
+<div id="a37e129f-21e3-4d61-837d-e33231afbe2a" class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>xml_file <span class="op">=</span> directory <span class="op">/</span> <span class="st">'PlataformasAgregadasSinMenores_20220104_030016_1.atom'</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> xml_file.exists()</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>xml_file</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>PosixPath('/home/manu/Sync/UC3M/proyectos/2022/nextProcurement/sproc/samples/PlataformasAgregadasSinMenores_20220104_030016_1.atom')</code></pre>
+</div>
+</div>
+<p><em>Root</em> element of the <em>XML</em> tree</p>
+<div id="6373d5bc-078c-4eac-8f0a-d6e51c3d3d01" class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>root <span class="op">=</span> etree.parse(xml_file).getroot()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Entries are extracted</p>
+<div id="2f4cbc21-009a-43d9-b712-23d9dcd972b5" class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>entries <span class="op">=</span> sproc.xml.get_entries(root)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">len</span>(entries) <span class="op">==</span> <span class="dv">117</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>entries[:<span class="dv">4</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>[&lt;Element {http://www.w3.org/2005/Atom}entry&gt;,
+ &lt;Element {http://www.w3.org/2005/Atom}entry&gt;,
+ &lt;Element {http://www.w3.org/2005/Atom}entry&gt;,
+ &lt;Element {http://www.w3.org/2005/Atom}entry&gt;]</code></pre>
+</div>
+</div>
+<p>The first one is picked out</p>
+<div id="de9561fb-d7b6-4356-9764-674a36029779" class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>element <span class="op">=</span> entries[<span class="dv">0</span>]</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>sproc.xml.split_namespace_tag(element.tag)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>('http://www.w3.org/2005/Atom', 'entry')</code></pre>
+</div>
+</div>
+<p>It is turned into a <code>pd.Series</code></p>
+<div id="bc141a16-98e2-4b0c-bae0-1964d2845556" class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>element_series <span class="op">=</span> sproc.xml.entry_to_series(element)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>element_series[:<span class="dv">8</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>id                                                                           https://contrataciondelestado.es/sindicacion/P...
+summary                                                                      Id licitación: C. 2-2021; Órgano de Contrataci...
+title                                                                        L'objecte del contracte és la renovació de tot...
+updated                                                                                          2022-01-03T01:11:41.826+01:00
+ContractFolderStatus - ContractFolderID                                                                              C. 2-2021
+ContractFolderStatus - ContractFolderStatusCode                                                                            ADJ
+ContractFolderStatus - LocatedContractingParty - BuyerProfileURIID           https://contractaciopublica.gencat.cat/ecofin_...
+ContractFolderStatus - LocatedContractingParty - Party - PartyName - Name                             Ajuntament de Sant Ramon
+dtype: object</code></pre>
+</div>
+</div>
+<section id="series" class="level2">
+<h2 class="anchored" data-anchor-id="series">Series</h2>
+<p>We can easily iterate the series</p>
+<div id="72cd9a9a-d5c5-4071-a2ff-48dd65c425cb" class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="bu">next</span>(<span class="bu">iter</span>(element_series.items()))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>('id',
+ 'https://contrataciondelestado.es/sindicacion/PlataformasAgregadasSinMenores/8799346')</code></pre>
+</div>
+</div>
+<div id="c0257fd9-c42e-4d6e-a117-a9dfc70c28f9" class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>index_paths <span class="op">=</span> []</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>values <span class="op">=</span> []</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, v <span class="kw">in</span> element_series.items():</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    index_paths.append(<span class="bu">tuple</span>(i.split(sproc.structure.nested_tags_separator)))</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    values.append(v)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="e1cf5860-87fa-4ba8-b718-77bfd2fa6faa" class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>index_paths[:<span class="dv">6</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>[('id',),
+ ('summary',),
+ ('title',),
+ ('updated',),
+ ('ContractFolderStatus', 'ContractFolderID'),
+ ('ContractFolderStatus', 'ContractFolderStatusCode')]</code></pre>
+</div>
+</div>
+<div id="31b75c34-54f5-4789-b21f-bbf0e5e62cf4" class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>values[:<span class="dv">6</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>['https://contrataciondelestado.es/sindicacion/PlataformasAgregadasSinMenores/8799346',
+ 'Id licitación: C. 2-2021; Órgano de Contratación: Ajuntament de Sant Ramon; Importe: 135553.26; Estado: ADJUDICADA',
+ "L'objecte del contracte és la renovació de totes les llumeneres que formen la il·luminació existent de tots els carrers i vials del casc urbà de la localitat de Sant Ramon i dels nuclis agregats de La Manresana, Portell, Viver i Gospí",
+ '2022-01-03T01:11:41.826+01:00',
+ 'C. 2-2021',
+ 'ADJ']</code></pre>
+</div>
+</div>
+<div id="012f0fbd-f99d-4d76-8f74-e5ac37d34194" class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>multiindex <span class="op">=</span> pd.MultiIndex.from_tuples(index_paths)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>multiindex[:<span class="dv">6</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>MultiIndex([(                  'id',                        nan, nan, ...),
+            (             'summary',                        nan, nan, ...),
+            (               'title',                        nan, nan, ...),
+            (             'updated',                        nan, nan, ...),
+            ('ContractFolderStatus',         'ContractFolderID', nan, ...),
+            ('ContractFolderStatus', 'ContractFolderStatusCode', nan, ...)],
+           )</code></pre>
+</div>
+</div>
+<div id="f8d96d39-ac31-43fc-8455-82bde98c0caf" class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>multiindexed_series <span class="op">=</span> pd.Series(values, index<span class="op">=</span>multiindex)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>multiindexed_series[:<span class="dv">6</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>id                    NaN                       NaN  NaN  NaN    https://contrataciondelestado.es/sindicacion/P...
+summary               NaN                       NaN  NaN  NaN    Id licitación: C. 2-2021; Órgano de Contrataci...
+title                 NaN                       NaN  NaN  NaN    L'objecte del contracte és la renovació de tot...
+updated               NaN                       NaN  NaN  NaN                        2022-01-03T01:11:41.826+01:00
+ContractFolderStatus  ContractFolderID          NaN  NaN  NaN                                            C. 2-2021
+                      ContractFolderStatusCode  NaN  NaN  NaN                                                  ADJ
+dtype: object</code></pre>
+</div>
+</div>
+<p>A function that turns the index of a <code>pd.Series</code> into a hierarchical (<code>pd.MultiIndex</code>) one.</p>
+<hr>
+<p><a href="https://github.com/manuvazquez/sproc/blob/main/sproc/hier.py#L20" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="flat_series_to_multiindexed_series" class="level3">
+<h3 class="anchored" data-anchor-id="flat_series_to_multiindexed_series">flat_series_to_multiindexed_series</h3>
+<blockquote class="blockquote">
+<pre><code> flat_series_to_multiindexed_series (s:pandas.core.series.Series)</code></pre>
+</blockquote>
+<p><em>Returns a multi-indexed version of the input</em></p>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>s</td>
+<td>Series</td>
+<td>Flat series</td>
+</tr>
+<tr class="even">
+<td><strong>Returns</strong></td>
+<td><strong>Series</strong></td>
+<td><strong>Multi-indexed series</strong></td>
+</tr>
+</tbody>
+</table>
+<div id="33ed5bd6-83d8-4f5f-8beb-cac8babb4755" class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>flat_series_to_multiindexed_series(element_series)[:<span class="dv">6</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>id                    NaN                       NaN  NaN  NaN    https://contrataciondelestado.es/sindicacion/P...
+summary               NaN                       NaN  NaN  NaN    Id licitación: C. 2-2021; Órgano de Contrataci...
+title                 NaN                       NaN  NaN  NaN    L'objecte del contracte és la renovació de tot...
+updated               NaN                       NaN  NaN  NaN                        2022-01-03T01:11:41.826+01:00
+ContractFolderStatus  ContractFolderID          NaN  NaN  NaN                                            C. 2-2021
+                      ContractFolderStatusCode  NaN  NaN  NaN                                                  ADJ
+dtype: object</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="dataframe" class="level2">
+<h2 class="anchored" data-anchor-id="dataframe">DataFrame</h2>
+<p>We can concatenate together the <code>pd.Series</code> for the different <em>entries</em> into a <code>pd.DataFrame</code></p>
+<div id="d907f9dc-993e-4200-a215-9438a9d4d736" class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>pd.concat([flat_series_to_multiindexed_series(sproc.xml.entry_to_series(e)) <span class="cf">for</span> e <span class="kw">in</span> entries[:<span class="dv">4</span>]], axis<span class="op">=</span><span class="dv">1</span>).T</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">id</th>
+<th data-quarto-table-cell-role="th">summary</th>
+<th data-quarto-table-cell-role="th">title</th>
+<th data-quarto-table-cell-role="th">updated</th>
+<th colspan="17" data-quarto-table-cell-role="th" data-halign="left">ContractFolderStatus</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">ContractFolderID</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatusCode</th>
+<th colspan="3" data-quarto-table-cell-role="th" data-halign="left">LocatedContractingParty</th>
+<th data-quarto-table-cell-role="th">ProcurementProject</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">TenderResult</th>
+<th colspan="3" data-quarto-table-cell-role="th" data-halign="left">TenderingProcess</th>
+<th colspan="3" data-quarto-table-cell-role="th" data-halign="left">ValidNoticeInfo</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">LegalDocumentReference</th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">BuyerProfileURIID</th>
+<th data-quarto-table-cell-role="th">Party</th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">WinningParty</th>
+<th data-quarto-table-cell-role="th">AwardedTenderedProject</th>
+<th data-quarto-table-cell-role="th">ProcedureCode</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">TenderSubmissionDeadlinePeriod</th>
+<th data-quarto-table-cell-role="th">NoticeTypeCode</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">AdditionalPublicationStatus</th>
+<th data-quarto-table-cell-role="th">ID</th>
+<th data-quarto-table-cell-role="th">Attachment</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">PartyName</th>
+<th data-quarto-table-cell-role="th">PartyName</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">PartyName</th>
+<th data-quarto-table-cell-role="th">LegalMonetaryTotal</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">EndDate</th>
+<th data-quarto-table-cell-role="th">EndTime</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">PublicationMediaName</th>
+<th data-quarto-table-cell-role="th">AdditionalPublicationDocumentReference</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">ExternalReference</th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th">TaxExclusiveAmount</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">IssueDate</th>
+<th data-quarto-table-cell-role="th">NaN</th>
+<th data-quarto-table-cell-role="th">URI</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Id licitación: C. 2-2021; Órgano de Contrataci...</td>
+<td>L'objecte del contracte és la renovació de tot...</td>
+<td>2022-01-03T01:11:41.826+01:00</td>
+<td>C. 2-2021</td>
+<td>ADJ</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>Ajuntament de Sant Ramon</td>
+<td>Entitats municipals de Catalunya</td>
+<td>L'objecte del contracte és la renovació de tot...</td>
+<td>...</td>
+<td>AERONAVAL DE CONSTRUCCIONES I INSTALACIONES , ...</td>
+<td>90078.51</td>
+<td>9</td>
+<td>2021-12-17</td>
+<td>14:00:00</td>
+<td>[[DOC_CN, DOC_CAN_ADJ]]</td>
+<td>[[Perfil del contratante, Perfil del contratan...</td>
+<td>[[2021-11-30, 2022-01-03]]</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Id licitación: 8128_3/2021; Órgano de Contrata...</td>
+<td>Obras de restauración hidromorfológica del río...</td>
+<td>2022-01-03T01:00:11.194+01:00</td>
+<td>8128_3/2021</td>
+<td>PUB</td>
+<td>NaN</td>
+<td>Pleno del Ayuntamiento</td>
+<td>AYUNTAMIENTO DE MONREAL</td>
+<td>Obras de restauración hidromorfológica del río...</td>
+<td>...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>1</td>
+<td>2022-01-22</td>
+<td>23:30:00</td>
+<td>DOC_CN</td>
+<td>Perfil del contratante</td>
+<td>2022-01-03</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Id licitación: 1000_0005-CP01-2021-000063; Órg...</td>
+<td>Contrato del servicio de realización de labore...</td>
+<td>2022-01-03T01:00:10.399+01:00</td>
+<td>1000_0005-CP01-2021-000063</td>
+<td>EV</td>
+<td>NaN</td>
+<td>El Director General de Comunicación y Relacion...</td>
+<td>Departamento de Presidencia, Igualdad, Función...</td>
+<td>Contrato del servicio de realización de labore...</td>
+<td>...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>1</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>DOC_CN</td>
+<td>[[DOUE, Perfil del contratante]]</td>
+<td>[[2021-12-01, 2022-01-03]]</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Id licitación: 1379/2020 4738; Órgano de Contr...</td>
+<td>Obres de renovació de l'enllumenat públic a la...</td>
+<td>2022-01-03T00:11:40.740+01:00</td>
+<td>1379/2020 4738</td>
+<td>EV</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>Ajuntament de Canet de Mar</td>
+<td>Entitats municipals de Catalunya</td>
+<td>Obres de renovació de l'enllumenat públic a la...</td>
+<td>...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>9</td>
+<td>2022-01-02</td>
+<td>23:59:00</td>
+<td>DOC_CN</td>
+<td>Perfil del contratante</td>
+<td>2021-12-13</td>
+<td>Plec Clausules.pdf</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+</tr>
+</tbody>
+</table>
+
+<p>4 rows × 29 columns</p>
+</div>
+</div>
+</div>
+</div>
+<p>However, there is a problem if the <code>pd.Series</code>’s to be concatenated have different number of levels</p>
+<div id="0b61533e-f3d9-4c24-90c9-8bc79d3029cd" class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>flat_series_to_multiindexed_series(sproc.xml.entry_to_series(entries[<span class="dv">15</span>])).index.nlevels</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>5</code></pre>
+</div>
+</div>
+<div id="a959a656-cbcf-4974-809a-69caa89d1607" class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>flat_series_to_multiindexed_series(sproc.xml.entry_to_series(entries[<span class="dv">16</span>])).index.nlevels</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>6</code></pre>
+</div>
+</div>
+<div id="e48084f4-5403-4c72-be06-c76cf1081208" class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    pd.concat([flat_series_to_multiindexed_series(sproc.xml.entry_to_series(e)) <span class="cf">for</span> e <span class="kw">in</span> entries[<span class="dv">15</span>:<span class="dv">17</span>]], axis<span class="op">=</span><span class="dv">1</span>).T</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> (<span class="pp">ValueError</span>, <span class="pp">AssertionError</span>):</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'Oooooooooops'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Oooooooooops</code></pre>
+</div>
+</div>
+<p>The function below just converts the <code>pd.DataFrame</code> <em>column-wise</em>. Columns with different levels are handled as suggested in <a href="https://stackoverflow.com/a/68940748">this post</a>.</p>
+<hr>
+<p><a href="https://github.com/manuvazquez/sproc/blob/main/sproc/hier.py#L35" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="flat_df_to_multiindexed_df" class="level3">
+<h3 class="anchored" data-anchor-id="flat_df_to_multiindexed_df">flat_df_to_multiindexed_df</h3>
+<blockquote class="blockquote">
+<pre><code> flat_df_to_multiindexed_df (input_df:pandas.core.frame.DataFrame)</code></pre>
+</blockquote>
+<p><em>Reads and parses an XML file into a <code>DataFrame</code></em></p>
+<table class="table">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 38%">
+<col style="width: 52%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>input_df</td>
+<td>DataFrame</td>
+<td>Input <code>DataFrame</code></td>
+</tr>
+<tr class="even">
+<td><strong>Returns</strong></td>
+<td><strong>DataFrame</strong></td>
+<td><strong>A column-hierarchical version of the input <code>DataFrame</code></strong></td>
+</tr>
+</tbody>
+</table>
+<p>We first build the <code>pd.DataFrame</code></p>
+<div id="5cb45e88-3e37-48ca-95fe-f3880956c933" class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> sproc.xml.to_df(xml_file)</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>df.head(<span class="dv">6</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">id</th>
+<th data-quarto-table-cell-role="th">summary</th>
+<th data-quarto-table-cell-role="th">title</th>
+<th data-quarto-table-cell-role="th">updated</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus - ContractFolderID</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus - ContractFolderStatusCode</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus - LocatedContractingParty - BuyerProfileURIID</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus - LocatedContractingParty - Party - PartyName - Name</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus - LocatedContractingParty - ParentLocatedParty - PartyName - Name</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus - ProcurementProject - Name</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus - LegalDocumentReference - Attachment - ExternalReference - URI</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus - TechnicalDocumentReference - ID</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus - TechnicalDocumentReference - Attachment - ExternalReference - URI</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus - ProcurementProject - PlannedPeriod - StartDate</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus - ProcurementProject - PlannedPeriod - EndDate</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus - LocatedContractingParty - Party - PartyIdentification - ID</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus - LocatedContractingParty - ParentLocatedParty - ParentLocatedParty - PartyName - Name</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus - TenderingProcess - ParticipationRequestReceptionPeriod - EndDate</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus - TenderingProcess - ParticipationRequestReceptionPeriod - EndTime</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus - TenderResult - AwardedTenderedProject - ProcurementProjectLotID</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Id licitación: C. 2-2021; Órgano de Contrataci...</td>
+<td>L'objecte del contracte és la renovació de tot...</td>
+<td>2022-01-03T01:11:41.826+01:00</td>
+<td>C. 2-2021</td>
+<td>ADJ</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>Ajuntament de Sant Ramon</td>
+<td>Entitats municipals de Catalunya</td>
+<td>L'objecte del contracte és la renovació de tot...</td>
+<td>...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Id licitación: 8128_3/2021; Órgano de Contrata...</td>
+<td>Obras de restauración hidromorfológica del río...</td>
+<td>2022-01-03T01:00:11.194+01:00</td>
+<td>8128_3/2021</td>
+<td>PUB</td>
+<td>NaN</td>
+<td>Pleno del Ayuntamiento</td>
+<td>AYUNTAMIENTO DE MONREAL</td>
+<td>Obras de restauración hidromorfológica del río...</td>
+<td>...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Id licitación: 1000_0005-CP01-2021-000063; Órg...</td>
+<td>Contrato del servicio de realización de labore...</td>
+<td>2022-01-03T01:00:10.399+01:00</td>
+<td>1000_0005-CP01-2021-000063</td>
+<td>EV</td>
+<td>NaN</td>
+<td>El Director General de Comunicación y Relacion...</td>
+<td>Departamento de Presidencia, Igualdad, Función...</td>
+<td>Contrato del servicio de realización de labore...</td>
+<td>...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Id licitación: 1379/2020 4738; Órgano de Contr...</td>
+<td>Obres de renovació de l'enllumenat públic a la...</td>
+<td>2022-01-03T00:11:40.740+01:00</td>
+<td>1379/2020 4738</td>
+<td>EV</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>Ajuntament de Canet de Mar</td>
+<td>Entitats municipals de Catalunya</td>
+<td>Obres de renovació de l'enllumenat públic a la...</td>
+<td>...</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Id licitación: 2021-44; Órgano de Contratación...</td>
+<td>Subministre i la instal·lació fotovoltaica en ...</td>
+<td>2022-01-03T00:11:40.696+01:00</td>
+<td>2021-44</td>
+<td>EV</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>Ajuntament de Valls</td>
+<td>Entitats municipals de Catalunya</td>
+<td>Subministre i la instal·lació fotovoltaica en ...</td>
+<td>...</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>Enllac plec clausules tecniques.doc</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">5</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Id licitación: 2809/2021; Órgano de Contrataci...</td>
+<td>Servei de visites i activitats sobre Història ...</td>
+<td>2022-01-03T00:11:40.639+01:00</td>
+<td>2809/2021</td>
+<td>EV</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>Institut de Cultura de Barcelona</td>
+<td>Entitats municipals de Catalunya</td>
+<td>Servei de visites i activitats sobre Història ...</td>
+<td>...</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>2809-21 PPT.pdf</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+</tbody>
+</table>
+
+<p>6 rows × 38 columns</p>
+</div>
+</div>
+</div>
+</div>
+<p>…and, afterwards, a <em>hierarchical</em> version thereof</p>
+<div id="868ff262-62d2-4c07-86e9-0b00a73d611e" class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>hierarchical_df <span class="op">=</span> flat_df_to_multiindexed_df(df)</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>hierarchical_df.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">id</th>
+<th data-quarto-table-cell-role="th">summary</th>
+<th data-quarto-table-cell-role="th">title</th>
+<th data-quarto-table-cell-role="th">updated</th>
+<th colspan="17" data-quarto-table-cell-role="th" data-halign="left">ContractFolderStatus</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ContractFolderID</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatusCode</th>
+<th colspan="3" data-quarto-table-cell-role="th" data-halign="left">LocatedContractingParty</th>
+<th data-quarto-table-cell-role="th">ProcurementProject</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">LegalDocumentReference</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">TechnicalDocumentReference</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ProcurementProject</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">LocatedContractingParty</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">TenderingProcess</th>
+<th data-quarto-table-cell-role="th">TenderResult</th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">BuyerProfileURIID</th>
+<th data-quarto-table-cell-role="th">Party</th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">Attachment</th>
+<th data-quarto-table-cell-role="th">ID</th>
+<th data-quarto-table-cell-role="th">Attachment</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">PlannedPeriod</th>
+<th data-quarto-table-cell-role="th">Party</th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ParticipationRequestReceptionPeriod</th>
+<th data-quarto-table-cell-role="th">AwardedTenderedProject</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">PartyName</th>
+<th data-quarto-table-cell-role="th">PartyName</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">ExternalReference</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ExternalReference</th>
+<th data-quarto-table-cell-role="th">StartDate</th>
+<th data-quarto-table-cell-role="th">EndDate</th>
+<th data-quarto-table-cell-role="th">PartyIdentification</th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th">EndDate</th>
+<th data-quarto-table-cell-role="th">EndTime</th>
+<th data-quarto-table-cell-role="th">ProcurementProjectLotID</th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">URI</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">URI</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ID</th>
+<th data-quarto-table-cell-role="th">PartyName</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Id licitación: C. 2-2021; Órgano de Contrataci...</td>
+<td>L'objecte del contracte és la renovació de tot...</td>
+<td>2022-01-03T01:11:41.826+01:00</td>
+<td>C. 2-2021</td>
+<td>ADJ</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>Ajuntament de Sant Ramon</td>
+<td>Entitats municipals de Catalunya</td>
+<td>L'objecte del contracte és la renovació de tot...</td>
+<td>...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Id licitación: 8128_3/2021; Órgano de Contrata...</td>
+<td>Obras de restauración hidromorfológica del río...</td>
+<td>2022-01-03T01:00:11.194+01:00</td>
+<td>8128_3/2021</td>
+<td>PUB</td>
+<td>NaN</td>
+<td>Pleno del Ayuntamiento</td>
+<td>AYUNTAMIENTO DE MONREAL</td>
+<td>Obras de restauración hidromorfológica del río...</td>
+<td>...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Id licitación: 1000_0005-CP01-2021-000063; Órg...</td>
+<td>Contrato del servicio de realización de labore...</td>
+<td>2022-01-03T01:00:10.399+01:00</td>
+<td>1000_0005-CP01-2021-000063</td>
+<td>EV</td>
+<td>NaN</td>
+<td>El Director General de Comunicación y Relacion...</td>
+<td>Departamento de Presidencia, Igualdad, Función...</td>
+<td>Contrato del servicio de realización de labore...</td>
+<td>...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Id licitación: 1379/2020 4738; Órgano de Contr...</td>
+<td>Obres de renovació de l'enllumenat públic a la...</td>
+<td>2022-01-03T00:11:40.740+01:00</td>
+<td>1379/2020 4738</td>
+<td>EV</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>Ajuntament de Canet de Mar</td>
+<td>Entitats municipals de Catalunya</td>
+<td>Obres de renovació de l'enllumenat públic a la...</td>
+<td>...</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Id licitación: 2021-44; Órgano de Contratación...</td>
+<td>Subministre i la instal·lació fotovoltaica en ...</td>
+<td>2022-01-03T00:11:40.696+01:00</td>
+<td>2021-44</td>
+<td>EV</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>Ajuntament de Valls</td>
+<td>Entitats municipals de Catalunya</td>
+<td>Subministre i la instal·lació fotovoltaica en ...</td>
+<td>...</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>Enllac plec clausules tecniques.doc</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+</tbody>
+</table>
+
+<p>5 rows × 38 columns</p>
+</div>
+</div>
+</div>
+</div>
+<p><em>Cross-sections</em> of the above <code>pd.DataFrame</code> can be extracted</p>
+<div id="5e4b4fb2-2bdb-4070-9186-741e64eb507d" class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>hierarchical_df.xs(<span class="st">'id'</span>, axis<span class="op">=</span><span class="st">'columns'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>0      https://contrataciondelestado.es/sindicacion/P...
+1      https://contrataciondelestado.es/sindicacion/P...
+2      https://contrataciondelestado.es/sindicacion/P...
+3      https://contrataciondelestado.es/sindicacion/P...
+4      https://contrataciondelestado.es/sindicacion/P...
+                             ...                        
+112    https://contrataciondelestado.es/sindicacion/P...
+113    https://contrataciondelestado.es/sindicacion/P...
+114    https://contrataciondelestado.es/sindicacion/P...
+115    https://contrataciondelestado.es/sindicacion/P...
+116    https://contrataciondelestado.es/sindicacion/P...
+Name: id, Length: 117, dtype: object</code></pre>
+</div>
+</div>
+<p>At deeper levels (notice in the above table <em>ContractFolderID</em> is nested inside <em>ContractFolderStatus</em>)</p>
+<div id="dea121d0-c5fc-4f1f-b3e5-2de9da8a532d" class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>hierarchical_df.xs(<span class="st">'ContractFolderID'</span>, axis<span class="op">=</span><span class="dv">1</span>, level<span class="op">=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>C. 2-2021</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>8128_3/2021</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>1000_0005-CP01-2021-000063</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>1379/2020 4738</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>2021-44</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">112</td>
+<td>1005_391-2021</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">113</td>
+<td>8165_3/2021</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">114</td>
+<td>8113_3/2021</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">115</td>
+<td>8113_01 2021</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">116</td>
+<td>0001264/2021</td>
+</tr>
+</tbody>
+</table>
+
+<p>117 rows × 1 columns</p>
+</div>
+</div>
+</div>
+</div>
+<p>The latter encompasses most of the data</p>
+<div id="72c76d91-64d4-41fb-99e9-bcba6f40ef1f" class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>hierarchical_df.xs(<span class="st">'ContractFolderStatus'</span>, axis<span class="op">=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ContractFolderID</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatusCode</th>
+<th colspan="3" data-quarto-table-cell-role="th" data-halign="left">LocatedContractingParty</th>
+<th colspan="5" data-quarto-table-cell-role="th" data-halign="left">ProcurementProject</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">LegalDocumentReference</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">TechnicalDocumentReference</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ProcurementProject</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">LocatedContractingParty</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">TenderingProcess</th>
+<th data-quarto-table-cell-role="th">TenderResult</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">BuyerProfileURIID</th>
+<th data-quarto-table-cell-role="th">Party</th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th">TypeCode</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">BudgetAmount</th>
+<th data-quarto-table-cell-role="th">RequiredCommodityClassification</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">Attachment</th>
+<th data-quarto-table-cell-role="th">ID</th>
+<th data-quarto-table-cell-role="th">Attachment</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">PlannedPeriod</th>
+<th data-quarto-table-cell-role="th">Party</th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ParticipationRequestReceptionPeriod</th>
+<th data-quarto-table-cell-role="th">AwardedTenderedProject</th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">PartyName</th>
+<th data-quarto-table-cell-role="th">PartyName</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">EstimatedOverallContractAmount</th>
+<th data-quarto-table-cell-role="th">TaxExclusiveAmount</th>
+<th data-quarto-table-cell-role="th">ItemClassificationCode</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">ExternalReference</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ExternalReference</th>
+<th data-quarto-table-cell-role="th">StartDate</th>
+<th data-quarto-table-cell-role="th">EndDate</th>
+<th data-quarto-table-cell-role="th">PartyIdentification</th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th">EndDate</th>
+<th data-quarto-table-cell-role="th">EndTime</th>
+<th data-quarto-table-cell-role="th">ProcurementProjectLotID</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">URI</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">URI</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ID</th>
+<th data-quarto-table-cell-role="th">PartyName</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>C. 2-2021</td>
+<td>ADJ</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>Ajuntament de Sant Ramon</td>
+<td>Entitats municipals de Catalunya</td>
+<td>L'objecte del contracte és la renovació de tot...</td>
+<td>1</td>
+<td>135553.26</td>
+<td>135553.26</td>
+<td>34928530</td>
+<td>...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>8128_3/2021</td>
+<td>PUB</td>
+<td>NaN</td>
+<td>Pleno del Ayuntamiento</td>
+<td>AYUNTAMIENTO DE MONREAL</td>
+<td>Obras de restauración hidromorfológica del río...</td>
+<td>3</td>
+<td>81022.72</td>
+<td>81022.72</td>
+<td>45000000</td>
+<td>...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>1000_0005-CP01-2021-000063</td>
+<td>EV</td>
+<td>NaN</td>
+<td>El Director General de Comunicación y Relacion...</td>
+<td>Departamento de Presidencia, Igualdad, Función...</td>
+<td>Contrato del servicio de realización de labore...</td>
+<td>2</td>
+<td>239797.5</td>
+<td>47959.5</td>
+<td>92400000</td>
+<td>...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>1379/2020 4738</td>
+<td>EV</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>Ajuntament de Canet de Mar</td>
+<td>Entitats municipals de Catalunya</td>
+<td>Obres de renovació de l'enllumenat públic a la...</td>
+<td>3</td>
+<td>214781.46</td>
+<td>178984.55</td>
+<td>45316100</td>
+<td>...</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>2021-44</td>
+<td>EV</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>Ajuntament de Valls</td>
+<td>Entitats municipals de Catalunya</td>
+<td>Subministre i la instal·lació fotovoltaica en ...</td>
+<td>1</td>
+<td>129247.06</td>
+<td>107642.2</td>
+<td>9331000</td>
+<td>...</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>Enllac plec clausules tecniques.doc</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">112</td>
+<td>1005_391-2021</td>
+<td>PUB</td>
+<td>NaN</td>
+<td>Dirección General de Cultura-Institución Prínc...</td>
+<td>Departamento de Cultura, Deporte y Juventud</td>
+<td>Apoyo a la gestión del patrimonio filmográfico...</td>
+<td>2</td>
+<td>104025.9</td>
+<td>34675.3</td>
+<td>92511000</td>
+<td>...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">113</td>
+<td>8165_3/2021</td>
+<td>EV</td>
+<td>NaN</td>
+<td>Mancomunidad de Servicios Sociales de Base de ...</td>
+<td>MANCOMUNIDAD DE SERVICIOS DE HUARTE Y DE ESTER...</td>
+<td>Asistencia técnica para la prestación del serv...</td>
+<td>2</td>
+<td>72000</td>
+<td>14400</td>
+<td>85000000</td>
+<td>...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">114</td>
+<td>8113_3/2021</td>
+<td>EV</td>
+<td>NaN</td>
+<td>Subdirector de Gestión y Recursos</td>
+<td>Agencia Navarra para la Dependencia</td>
+<td>Contrato de servicios de desinfección, desinse...</td>
+<td>2</td>
+<td>20305.6</td>
+<td>4061.12</td>
+<td>90920000</td>
+<td>...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>2022-01-01</td>
+<td>2022-12-31</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">115</td>
+<td>8113_01 2021</td>
+<td>EV</td>
+<td>NaN</td>
+<td>Agencia Navarra de Autonomía y Desarrollo de l...</td>
+<td>Agencia Navarra para la Dependencia</td>
+<td>Contrato del Servicio de Teleasistencia para l...</td>
+<td>2</td>
+<td>11855331.61</td>
+<td>10777574.19</td>
+<td>[[85320000, 32500000]]</td>
+<td>...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">116</td>
+<td>0001264/2021</td>
+<td>RES</td>
+<td>NaN</td>
+<td>Agencia Pública Empresarial Sanitaria Bajo Gua...</td>
+<td>Junta de Andalucía</td>
+<td>2021/pa-44-4 servicio de mantenimiento integra...</td>
+<td>2</td>
+<td>91979.14</td>
+<td>19162.32</td>
+<td>33100000</td>
+<td>...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+</tbody>
+</table>
+
+<p>117 rows × 34 columns</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="util" class="level2">
+<h2 class="anchored" data-anchor-id="util">Util</h2>
+<p>A function to produce a <em>full</em> index path from the upper levels. NOTE: it turns out that when loading a <code>pd.DataFrame</code> saved in <em>parquet</em> format (using <code>to_parquet</code>), <code>np.nan</code> (a <em>float</em>) in a multiindexed column becomes <code>nan</code> (a <em>string</em>). This is accounted for in the code below.</p>
+<hr>
+<p><a href="https://github.com/manuvazquez/sproc/blob/main/sproc/hier.py#L63" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="pad_col_levels" class="level3">
+<h3 class="anchored" data-anchor-id="pad_col_levels">pad_col_levels</h3>
+<blockquote class="blockquote">
+<pre><code> pad_col_levels (df:pandas.core.frame.DataFrame, levels:tuple|list,
+                 denan:bool=False)</code></pre>
+</blockquote>
+<p><em>Builds a multiindex-amenable column name from a sequence of levels.</em></p>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>df</td>
+<td>DataFrame</td>
+<td></td>
+<td>Input</td>
+</tr>
+<tr class="even">
+<td>levels</td>
+<td>tuple | list</td>
+<td></td>
+<td>Individual names to assemble and pad</td>
+</tr>
+<tr class="odd">
+<td>denan</td>
+<td>bool</td>
+<td>False</td>
+<td>If <code>True</code>, skip <code>pd.NA</code>s</td>
+</tr>
+<tr class="even">
+<td><strong>Returns</strong></td>
+<td><strong>tuple</strong></td>
+<td></td>
+<td><strong>Multiindex column name</strong></td>
+</tr>
+</tbody>
+</table>
+<p>A <code>tuple</code> representing column multiindex is built</p>
+<div id="f120f99c-e6b4-47b9-810d-e97aa94aa107" class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>col_index <span class="op">=</span> pad_col_levels(hierarchical_df, [<span class="st">'ContractFolderStatus'</span>, <span class="st">'LocatedContractingParty'</span>, <span class="st">'Party'</span>, <span class="st">'PartyName'</span>, <span class="st">'Name'</span>] )</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>col_index</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>('ContractFolderStatus',
+ 'LocatedContractingParty',
+ 'Party',
+ 'PartyName',
+ 'Name',
+ '')</code></pre>
+</div>
+</div>
+<p><em>nan</em>’s can be omitted by passing the corresponding parameter</p>
+<div id="aab8698f-7bb3-403a-b95b-07d3f037f011" class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>pad_col_levels(hierarchical_df, [<span class="st">'ContractFolderStatus'</span>, <span class="st">'LocatedContractingParty'</span>, <span class="st">'Party'</span>, <span class="st">'PartyName'</span>, <span class="st">'Name'</span>, np.nan, np.nan], denan<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>('ContractFolderStatus',
+ 'LocatedContractingParty',
+ 'Party',
+ 'PartyName',
+ 'Name',
+ '')</code></pre>
+</div>
+</div>
+<p>It is used to retrieve the corresponding column</p>
+<div id="67002b36-1001-4a08-8ab1-de795f7f8990" class="cell">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>hierarchical_df.loc[:, col_index]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>0                               Ajuntament de Sant Ramon
+1                                 Pleno del Ayuntamiento
+2      El Director General de Comunicación y Relacion...
+3                             Ajuntament de Canet de Mar
+4                                    Ajuntament de Valls
+                             ...                        
+112    Dirección General de Cultura-Institución Prínc...
+113    Mancomunidad de Servicios Sociales de Base de ...
+114                    Subdirector de Gestión y Recursos
+115    Agencia Navarra de Autonomía y Desarrollo de l...
+116    Agencia Pública Empresarial Sanitaria Bajo Gua...
+Name: (ContractFolderStatus, LocatedContractingParty, Party, PartyName, Name, ), Length: 117, dtype: object</code></pre>
+</div>
+</div>
+<p>A function returning the columns containing a given <code>substring</code> in their (multi-level) name</p>
+<hr>
+<p><a href="https://github.com/manuvazquez/sproc/blob/main/sproc/hier.py#L77" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="columns_containing" class="level3">
+<h3 class="anchored" data-anchor-id="columns_containing">columns_containing</h3>
+<blockquote class="blockquote">
+<pre><code> columns_containing (df:pandas.core.frame.DataFrame, substring:str)</code></pre>
+</blockquote>
+<p><em>Return the columns whose name contain a given substring</em></p>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>df</td>
+<td>DataFrame</td>
+<td>Input</td>
+</tr>
+<tr class="even">
+<td>substring</td>
+<td>str</td>
+<td>Substring to be searched</td>
+</tr>
+</tbody>
+</table>
+<div id="1e304d2d-1f4c-4798-b2ab-b655952192a5" class="cell">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>columns_containing(hierarchical_df, <span class="st">'Name'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>MultiIndex([('ContractFolderStatus', 'LocatedContractingParty', ...),
+            ('ContractFolderStatus', 'LocatedContractingParty', ...),
+            ('ContractFolderStatus',      'ProcurementProject', ...),
+            ('ContractFolderStatus',            'TenderResult', ...),
+            ('ContractFolderStatus',         'ValidNoticeInfo', ...),
+            ('ContractFolderStatus', 'LocatedContractingParty', ...)],
+           )</code></pre>
+</div>
+</div>
+<p>A simple function to determine whether the columns of a <code>pd.DataFrame</code> are multiindexed.</p>
+<hr>
+<p><a href="https://github.com/manuvazquez/sproc/blob/main/sproc/hier.py#L88" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="is_column_multiindexed" class="level3">
+<h3 class="anchored" data-anchor-id="is_column_multiindexed">is_column_multiindexed</h3>
+<blockquote class="blockquote">
+<pre><code> is_column_multiindexed (df:pandas.core.frame.DataFrame)</code></pre>
+</blockquote>
+<p><em>Returns <code>True</code> if the given <code>pd.DataFrame</code> is column-multiindex.</em></p>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>df</td>
+<td>DataFrame</td>
+<td>Input</td>
+</tr>
+<tr class="even">
+<td><strong>Returns</strong></td>
+<td><strong>bool</strong></td>
+<td><strong>Assessment</strong></td>
+</tr>
+</tbody>
+</table>
+<div id="bbb6b701" class="cell">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>is_column_multiindexed(hierarchical_df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>True</code></pre>
+</div>
+</div>
+<div id="e4061ba4" class="cell">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>is_column_multiindexed(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>False</code></pre>
+</div>
+</div>
+</section>
+<section id="flattening-and-renaming-columns" class="level3">
+<h3 class="anchored" data-anchor-id="flattening-and-renaming-columns">Flattening and renaming columns</h3>
+<p>The above <code>pd.DataFrame</code> with <em>multiindexed</em> columns</p>
+<div id="bd509def-d845-46c8-a1fa-ced228aed984" class="cell">
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>hier_df <span class="op">=</span> flat_df_to_multiindexed_df(df)</span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>hier_df.head(<span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">id</th>
+<th data-quarto-table-cell-role="th">summary</th>
+<th data-quarto-table-cell-role="th">title</th>
+<th data-quarto-table-cell-role="th">updated</th>
+<th colspan="17" data-quarto-table-cell-role="th" data-halign="left">ContractFolderStatus</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ContractFolderID</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatusCode</th>
+<th colspan="3" data-quarto-table-cell-role="th" data-halign="left">LocatedContractingParty</th>
+<th data-quarto-table-cell-role="th">ProcurementProject</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">LegalDocumentReference</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">TechnicalDocumentReference</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ProcurementProject</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">LocatedContractingParty</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">TenderingProcess</th>
+<th data-quarto-table-cell-role="th">TenderResult</th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">BuyerProfileURIID</th>
+<th data-quarto-table-cell-role="th">Party</th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">Attachment</th>
+<th data-quarto-table-cell-role="th">ID</th>
+<th data-quarto-table-cell-role="th">Attachment</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">PlannedPeriod</th>
+<th data-quarto-table-cell-role="th">Party</th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ParticipationRequestReceptionPeriod</th>
+<th data-quarto-table-cell-role="th">AwardedTenderedProject</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">PartyName</th>
+<th data-quarto-table-cell-role="th">PartyName</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">ExternalReference</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ExternalReference</th>
+<th data-quarto-table-cell-role="th">StartDate</th>
+<th data-quarto-table-cell-role="th">EndDate</th>
+<th data-quarto-table-cell-role="th">PartyIdentification</th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th">EndDate</th>
+<th data-quarto-table-cell-role="th">EndTime</th>
+<th data-quarto-table-cell-role="th">ProcurementProjectLotID</th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">URI</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">URI</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ID</th>
+<th data-quarto-table-cell-role="th">PartyName</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Id licitación: C. 2-2021; Órgano de Contrataci...</td>
+<td>L'objecte del contracte és la renovació de tot...</td>
+<td>2022-01-03T01:11:41.826+01:00</td>
+<td>C. 2-2021</td>
+<td>ADJ</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>Ajuntament de Sant Ramon</td>
+<td>Entitats municipals de Catalunya</td>
+<td>L'objecte del contracte és la renovació de tot...</td>
+<td>...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Id licitación: 8128_3/2021; Órgano de Contrata...</td>
+<td>Obras de restauración hidromorfológica del río...</td>
+<td>2022-01-03T01:00:11.194+01:00</td>
+<td>8128_3/2021</td>
+<td>PUB</td>
+<td>NaN</td>
+<td>Pleno del Ayuntamiento</td>
+<td>AYUNTAMIENTO DE MONREAL</td>
+<td>Obras de restauración hidromorfológica del río...</td>
+<td>...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+</tbody>
+</table>
+
+<p>2 rows × 38 columns</p>
+</div>
+</div>
+</div>
+</div>
+<p>A mapping between columns and <em>human-readable</em> fields can be found <a href="https://docs.google.com/spreadsheets/d/1vRN_bLWyUp6Hs1ONUSP9m3cfrgjx5bfbD4wzW4gXCu0/edit#gid=0">here</a>. The latter was processed in <code>naming.ipynb</code> to get the file below.</p>
+<div id="7569dc3c-0d4b-4878-b9dc-6f70ba88c207" class="cell">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>data_scheme_file <span class="op">=</span> directory <span class="op">/</span> <span class="st">'PLACE.yaml'</span></span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> data_scheme_file.exists()</span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>data_scheme_file</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>PosixPath('/home/manu/Sync/UC3M/proyectos/2022/nextProcurement/sproc/samples/PLACE.yaml')</code></pre>
+</div>
+</div>
+<p>It provides (as a <code>dict</code>) a mapping from <em>human-readable</em> names to (maybe nested) fields in <em>Atom</em> files</p>
+<div id="97b25c7e-8ff4-4af2-a189-58ebdf9276c2" class="cell">
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(data_scheme_file) <span class="im">as</span> yaml_data:</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>    data_scheme <span class="op">=</span> yaml.load(yaml_data, Loader<span class="op">=</span>yaml.FullLoader)</span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>{k: data_scheme[k] <span class="cf">for</span> k <span class="kw">in</span> <span class="bu">list</span>(data_scheme)[:<span class="dv">5</span>]}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>{'id': ['id', nan, nan, nan, nan, nan, nan],
+ 'summary': ['summary', nan, nan, nan, nan, nan, nan],
+ 'title': ['title', nan, nan, nan, nan, nan, nan],
+ 'updated': ['updated', nan, nan, nan, nan, nan, nan],
+ 'Número de Expediente': ['ContractFolderStatus',
+  'ContractFolderID',
+  nan,
+  nan,
+  nan,
+  nan,
+  nan]}</code></pre>
+</div>
+</div>
+<p>A convenience function, <code>n2c</code> (as in “name to column”), to go from <em>human-readable</em> name to actual <em>multiindex</em> column</p>
+<div id="d84d7650-a9cf-49dd-9f15-42ea48c39af5" class="cell">
+<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>n2c <span class="op">=</span> <span class="kw">lambda</span> n: pad_col_levels(hier_df, data_scheme[n], denan<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The mapping can be exploited to access the columns of the <code>pd.DataFrame</code> using more natural names</p>
+<div id="46cda0b9-27ba-4853-895e-08e0ec12502f" class="cell">
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>hier_df[n2c(<span class="st">'Número de Expediente'</span>)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>0                       C. 2-2021
+1                     8128_3/2021
+2      1000_0005-CP01-2021-000063
+3                  1379/2020 4738
+4                         2021-44
+                  ...            
+112                 1005_391-2021
+113                   8165_3/2021
+114                   8113_3/2021
+115                  8113_01 2021
+116                  0001264/2021
+Name: (ContractFolderStatus, ContractFolderID, , , , ), Length: 117, dtype: object</code></pre>
+</div>
+</div>
+<p>A hierarchical column <em>multiindex</em> is assumed.</p>
+<div id="dd9d671e-34ef-44a7-b25f-0c1f3a5e4795" class="cell">
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a>inv_data_scheme <span class="op">=</span> {<span class="st">''</span>.join([e <span class="cf">if</span> pd.notna(e) <span class="cf">else</span> <span class="st">''</span> <span class="cf">for</span> e <span class="kw">in</span> v]): k <span class="cf">for</span> k, v <span class="kw">in</span> data_scheme.items()}</span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>[k <span class="cf">for</span> k <span class="kw">in</span> itertools.islice(inv_data_scheme, <span class="dv">4</span>, <span class="dv">6</span>)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>['ContractFolderStatusContractFolderID',
+ 'ContractFolderStatusContractFolderStatusCode']</code></pre>
+</div>
+</div>
+<div id="8d4fcf6d-e98f-4fd2-b24b-04c151ba0372" class="cell">
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>(<span class="st">'id'</span>, <span class="st">''</span>, <span class="st">''</span>, <span class="st">''</span>, <span class="st">''</span>, <span class="st">''</span>) <span class="kw">in</span> inv_data_scheme</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>False</code></pre>
+</div>
+</div>
+<div id="53ec4b8a-f624-40e7-97d1-71601355eed6" class="cell">
+<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a>hier_df.columns.nlevels</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>6</code></pre>
+</div>
+</div>
+<div id="f4b04daf-9612-4bd9-8950-91cff6470d5b" class="cell">
+<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="co">''</span>.join(hier_df.columns[<span class="dv">0</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>'id'</code></pre>
+</div>
+</div>
+<p>A tiny function to ensure some data scheme is valid</p>
+<hr>
+<p><a href="https://github.com/manuvazquez/sproc/blob/main/sproc/hier.py#L96" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="data_scheme_ok" class="level3">
+<h3 class="anchored" data-anchor-id="data_scheme_ok">data_scheme_ok</h3>
+<blockquote class="blockquote">
+<pre><code> data_scheme_ok (data_scheme:dict)</code></pre>
+</blockquote>
+<p><em>Checks whether a data scheme is correct</em></p>
+<table class="table">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 38%">
+<col style="width: 52%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>data_scheme</td>
+<td>dict</td>
+<td>Data scheme: every <code>key</code> a name, every <code>value</code> a <em>path</em></td>
+</tr>
+<tr class="even">
+<td><strong>Returns</strong></td>
+<td><strong>bool</strong></td>
+<td><strong><code>True</code> if the data scheme is fine</strong></td>
+</tr>
+</tbody>
+</table>
+<div id="25ac83e8-7c01-4c00-b624-4686117d9d76" class="cell">
+<div class="sourceCode cell-code" id="cb73"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>data_scheme_ok(data_scheme)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>True</code></pre>
+</div>
+</div>
+<div id="bd9d1bdc-6f1c-4a7a-875e-2139e11f13d1" class="cell">
+<div class="sourceCode cell-code" id="cb75"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> copy</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>A data scheme with the wrong number of elements</p>
+<div id="f41c7e2d-b07c-4fda-836d-d6d2f8bbb885" class="cell">
+<div class="sourceCode cell-code" id="cb76"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a>invalid_data_scheme <span class="op">=</span> copy.deepcopy(data_scheme)</span>
+<span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a>invalid_data_scheme[<span class="st">'id'</span>].append(np.nan)</span>
+<span id="cb76-3"><a href="#cb76-3" aria-hidden="true" tabindex="-1"></a><span class="bu">len</span>(invalid_data_scheme[<span class="st">'id'</span>]), <span class="bu">len</span>(invalid_data_scheme[<span class="st">'summary'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>(8, 7)</code></pre>
+</div>
+</div>
+<div id="652d0d59-530e-4c2c-840f-e26bb59940cc" class="cell">
+<div class="sourceCode cell-code" id="cb78"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a>data_scheme_ok(inv_data_scheme)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>True</code></pre>
+</div>
+</div>
+<p>A data scheme with the wrong type</p>
+<div id="ac7619f8-5448-49c7-9f8a-846b3d30d7c2" class="cell">
+<div class="sourceCode cell-code" id="cb80"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a>invalid_data_scheme <span class="op">=</span> copy.deepcopy(data_scheme)</span>
+<span id="cb80-2"><a href="#cb80-2" aria-hidden="true" tabindex="-1"></a>invalid_data_scheme[<span class="st">'id'</span>].append(<span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="5eb58043-7fff-465f-9380-53bdbb6d7ae8" class="cell">
+<div class="sourceCode cell-code" id="cb81"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a>data_scheme_ok(invalid_data_scheme)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>False</code></pre>
+</div>
+</div>
+<p>A function to rename every <em>multi-indexed</em> column using the provided mapping (<code>data_scheme</code>).</p>
+<hr>
+<p><a href="https://github.com/manuvazquez/sproc/blob/main/sproc/hier.py#L116" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="flatten_columns_names" class="level3">
+<h3 class="anchored" data-anchor-id="flatten_columns_names">flatten_columns_names</h3>
+<blockquote class="blockquote">
+<pre><code> flatten_columns_names (df:pandas.core.frame.DataFrame, data_scheme:dict,
+                        inplace:bool=False)</code></pre>
+</blockquote>
+<table class="table">
+<colgroup>
+<col style="width: 6%">
+<col style="width: 25%">
+<col style="width: 34%">
+<col style="width: 34%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>df</td>
+<td>DataFrame</td>
+<td></td>
+<td>Input</td>
+</tr>
+<tr class="even">
+<td>data_scheme</td>
+<td>dict</td>
+<td></td>
+<td>Every key is a flattened name, and every value a list with the different levels of the multi-index</td>
+</tr>
+<tr class="odd">
+<td>inplace</td>
+<td>bool</td>
+<td>False</td>
+<td>If <code>True</code> the input DataFrame is modified</td>
+</tr>
+<tr class="even">
+<td><strong>Returns</strong></td>
+<td><strong>None | pandas.core.frame.DataFrame</strong></td>
+<td></td>
+<td><strong>Flat DataFrame</strong></td>
+</tr>
+</tbody>
+</table>
+<div id="ed841a13-705e-408b-bdb0-03afaef34f69" class="cell">
+<div class="sourceCode cell-code" id="cb84"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a>renamed_cols_df <span class="op">=</span> flatten_columns_names(hier_df, data_scheme)</span>
+<span id="cb84-2"><a href="#cb84-2" aria-hidden="true" tabindex="-1"></a>renamed_cols_df.head(<span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">id</th>
+<th data-quarto-table-cell-role="th">summary</th>
+<th data-quarto-table-cell-role="th">title</th>
+<th data-quarto-table-cell-role="th">updated</th>
+<th data-quarto-table-cell-role="th">Número de Expediente</th>
+<th data-quarto-table-cell-role="th">Estado</th>
+<th data-quarto-table-cell-role="th">URL perfil de contratante</th>
+<th data-quarto-table-cell-role="th">Nombre</th>
+<th data-quarto-table-cell-role="th">Ubicación orgánica</th>
+<th data-quarto-table-cell-role="th">Objeto del Contrato</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">Pliego de cláusulas administrativas (URI)</th>
+<th data-quarto-table-cell-role="th">Pliego de Prescripciones técnicas</th>
+<th data-quarto-table-cell-role="th">Pliego de Prescripciones técnicas (URI)</th>
+<th data-quarto-table-cell-role="th">Plazo de Ejecución (Comienzo)</th>
+<th data-quarto-table-cell-role="th">Plazo de Ejecución (Fin)</th>
+<th data-quarto-table-cell-role="th">ID</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus - LocatedContractingParty - ParentLocatedParty - ParentLocatedParty - PartyName - Name</th>
+<th data-quarto-table-cell-role="th">Presentación de Solicitudes (Fecha)</th>
+<th data-quarto-table-cell-role="th">Presentación de Solicitudes (Hora)</th>
+<th data-quarto-table-cell-role="th">Lote</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Id licitación: C. 2-2021; Órgano de Contrataci...</td>
+<td>L'objecte del contracte és la renovació de tot...</td>
+<td>2022-01-03T01:11:41.826+01:00</td>
+<td>C. 2-2021</td>
+<td>ADJ</td>
+<td>https://contractaciopublica.gencat.cat/ecofin_...</td>
+<td>Ajuntament de Sant Ramon</td>
+<td>Entitats municipals de Catalunya</td>
+<td>L'objecte del contracte és la renovació de tot...</td>
+<td>...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Id licitación: 8128_3/2021; Órgano de Contrata...</td>
+<td>Obras de restauración hidromorfológica del río...</td>
+<td>2022-01-03T01:00:11.194+01:00</td>
+<td>8128_3/2021</td>
+<td>PUB</td>
+<td>NaN</td>
+<td>Pleno del Ayuntamiento</td>
+<td>AYUNTAMIENTO DE MONREAL</td>
+<td>Obras de restauración hidromorfológica del río...</td>
+<td>...</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+</tbody>
+</table>
+
+<p>2 rows × 38 columns</p>
+</div>
+</div>
+</div>
+</div>
+<p>One can now used the <em>human-readable</em> columns names, e.g.</p>
+<div id="64d4c592-56b4-478e-a7ad-68d9db31d3a9" class="cell">
+<div class="sourceCode cell-code" id="cb85"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a>renamed_cols_df[<span class="st">'Número de Expediente'</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>0                       C. 2-2021
+1                     8128_3/2021
+2      1000_0005-CP01-2021-000063
+3                  1379/2020 4738
+4                         2021-44
+                  ...            
+112                 1005_391-2021
+113                   8165_3/2021
+114                   8113_3/2021
+115                  8113_01 2021
+116                  0001264/2021
+Name: Número de Expediente, Length: 117, dtype: object</code></pre>
+</div>
+</div>
+<section id="insiders-minors" class="level4">
+<h4 class="anchored" data-anchor-id="insiders-minors">Insiders &amp; Minors</h4>
+<p>The data scheme <strong>for both</strong></p>
+<div id="baf79a0a" class="cell">
+<div class="sourceCode cell-code" id="cb87"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true" tabindex="-1"></a>data_scheme_file <span class="op">=</span> directory.parent <span class="op">/</span> <span class="st">'naming'</span> <span class="op">/</span> <span class="st">'insiders_minors.yaml'</span></span>
+<span id="cb87-2"><a href="#cb87-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(data_scheme_file)</span>
+<span id="cb87-3"><a href="#cb87-3" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> data_scheme_file.exists()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>/home/manu/Sync/UC3M/proyectos/2022/nextProcurement/sproc/naming/insiders_minors.yaml</code></pre>
+</div>
+</div>
+<div id="cd76b2df" class="cell">
+<div class="sourceCode cell-code" id="cb89"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(data_scheme_file) <span class="im">as</span> yaml_data:</span>
+<span id="cb89-2"><a href="#cb89-2" aria-hidden="true" tabindex="-1"></a>    data_scheme <span class="op">=</span> yaml.load(yaml_data, Loader<span class="op">=</span>yaml.FullLoader)</span>
+<span id="cb89-3"><a href="#cb89-3" aria-hidden="true" tabindex="-1"></a>{k: data_scheme[k] <span class="cf">for</span> k <span class="kw">in</span> <span class="bu">list</span>(data_scheme)[:<span class="dv">5</span>]}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>{'id': ['id'],
+ 'summary': ['summary'],
+ 'title': ['title'],
+ 'updated': ['updated'],
+ 'deleted_on': ['deleted_on']}</code></pre>
+</div>
+</div>
+<section id="insiders" class="level5">
+<h5 class="anchored" data-anchor-id="insiders">Insiders</h5>
+<div id="4fc8fcdb" class="cell">
+<div class="sourceCode cell-code" id="cb91"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a>insiders_file <span class="op">=</span> directory <span class="op">/</span> <span class="st">'insiders_sample.parquet'</span></span>
+<span id="cb91-2"><a href="#cb91-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(insiders_file)</span>
+<span id="cb91-3"><a href="#cb91-3" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> insiders_file.exists()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>/home/manu/Sync/UC3M/proyectos/2022/nextProcurement/sproc/samples/insiders_sample.parquet</code></pre>
+</div>
+</div>
+<div id="0d18b746" class="cell">
+<div class="sourceCode cell-code" id="cb93"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a>insiders_df <span class="op">=</span> pd.read_parquet(insiders_file)</span>
+<span id="cb93-2"><a href="#cb93-2" aria-hidden="true" tabindex="-1"></a>insiders_df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">id</th>
+<th data-quarto-table-cell-role="th">summary</th>
+<th data-quarto-table-cell-role="th">title</th>
+<th data-quarto-table-cell-role="th">updated</th>
+<th colspan="16" data-quarto-table-cell-role="th" data-halign="left">ContractFolderStatus</th>
+<th data-quarto-table-cell-role="th">deleted_on</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ContractFolderID</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatusCode</th>
+<th colspan="4" data-quarto-table-cell-role="th" data-halign="left">LocatedContractingParty</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">TenderingTerms</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ProcurementProjectLot</th>
+<th data-quarto-table-cell-role="th">LocatedContractingParty</th>
+<th data-quarto-table-cell-role="th">TendererStatus</th>
+<th data-quarto-table-cell-role="th">TenderResult</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">TenderingTerms</th>
+<th data-quarto-table-cell-role="th">LocatedContractingParty</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ContractingPartyTypeCode</th>
+<th colspan="3" data-quarto-table-cell-role="th" data-halign="left">Party</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">TendererQualificationRequest</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">TenderingTerms</th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th">ProcurementProjectLotID</th>
+<th data-quarto-table-cell-role="th">WinningParty</th>
+<th data-quarto-table-cell-role="th">ProcurementNationalLegislationCode</th>
+<th data-quarto-table-cell-role="th">TendererQualificationRequest</th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">PartyIdentification</th>
+<th data-quarto-table-cell-role="th">PartyName</th>
+<th data-quarto-table-cell-role="th">PostalAddress</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">EmployeeQuantityDescription</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">TendererQualificationRequest</th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">PartyLegalEntity</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">OperatingYearsDescription</th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ID</th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th">CityName</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">SpecificTendererRequirement</th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">CompanyTypeCode</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">RequirementTypeCode</th>
+<th data-quarto-table-cell-role="th">Description</th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">PartyIdentification</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ID</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">PartyIdentification</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ID</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th">zip</th>
+<th data-quarto-table-cell-role="th">file name</th>
+<th data-quarto-table-cell-role="th">entry</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td rowspan="5" data-quarto-table-cell-role="th" data-valign="top">licitacionesPerfilesContratanteCompleto3_2018.zip</td>
+<td rowspan="5" data-quarto-table-cell-role="th" data-valign="top">licitacionesPerfilesContratanteCompleto3_20200522_234632_1.atom</td>
+<td data-quarto-table-cell-role="th">494</td>
+<td>https://contrataciondelestado.es/sindicacion/l...</td>
+<td>Id licitación: LICT/99/024/2017/0063; Órgano d...</td>
+<td>Contratación de la Obra de creación de un nuev...</td>
+<td>2017-12-29 12:36:06.402000+00:00</td>
+<td>LICT/99/024/2017/0063</td>
+<td>RES</td>
+<td>5.0</td>
+<td>[G28207017]</td>
+<td>Director Gerente de FREMAP</td>
+<td>Majadahonda (Madrid)</td>
+<td>...</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">489</td>
+<td>https://contrataciondelestado.es/sindicacion/l...</td>
+<td>Id licitación: 357/17; Órgano de Contratación:...</td>
+<td>Suministro de mobiliario Hospital de Sagunt</td>
+<td>2017-12-29 12:44:12.934000+00:00</td>
+<td>357/17</td>
+<td>ADJ</td>
+<td>2.0</td>
+<td>[S4611001A]</td>
+<td>Departamento de Salud de Sagunto. Dirección Ec...</td>
+<td>Sagunto</td>
+<td>...</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">488</td>
+<td>https://contrataciondelestado.es/sindicacion/l...</td>
+<td>Id licitación: 7.1.23/17; Órgano de Contrataci...</td>
+<td>Red separativa de alcantarillado en el barrio ...</td>
+<td>2017-12-29 12:45:04.741000+00:00</td>
+<td>7.1.23/17</td>
+<td>RES</td>
+<td>2.0</td>
+<td>[S3933002B]</td>
+<td>Consejería de Universidades e Investigación, M...</td>
+<td>Santander</td>
+<td>...</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">486</td>
+<td>https://contrataciondelestado.es/sindicacion/l...</td>
+<td>Id licitación: 5/2016; Órgano de Contratación:...</td>
+<td>Prestación del servicio de vigilancia y limpie...</td>
+<td>2017-12-29 12:45:20.094000+00:00</td>
+<td>5/2016</td>
+<td>RES</td>
+<td>3.0</td>
+<td>[L01120271, P1202700I]</td>
+<td>Teniente de Alcalde Delegado del Área de Contr...</td>
+<td>Benicarló</td>
+<td>...</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">481</td>
+<td>https://contrataciondelestado.es/sindicacion/l...</td>
+<td>Id licitación: 1004217003400; Órgano de Contra...</td>
+<td>Servicios de mantenimiento y desarrollo de los...</td>
+<td>2017-12-29 12:48:25.547000+00:00</td>
+<td>1004217003400</td>
+<td>RES</td>
+<td>1.0</td>
+<td>[E00116302, S2800643E]</td>
+<td>Jefatura de la Sección Económico Financiera de...</td>
+<td>Madrid</td>
+<td>...</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+</tr>
+</tbody>
+</table>
+
+<p>5 rows × 195 columns</p>
+</div>
+</div>
+</div>
+</div>
+<div id="8bf88d4a" class="cell">
+<div class="sourceCode cell-code" id="cb94"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb94-1"><a href="#cb94-1" aria-hidden="true" tabindex="-1"></a>flatten_columns_names(insiders_df, data_scheme)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">id</th>
+<th data-quarto-table-cell-role="th">summary</th>
+<th data-quarto-table-cell-role="th">title</th>
+<th data-quarto-table-cell-role="th">updated</th>
+<th data-quarto-table-cell-role="th">Número de Expediente (Datos Generales del Expediente)</th>
+<th data-quarto-table-cell-role="th">Estado (Datos Generales del Expediente)</th>
+<th data-quarto-table-cell-role="th">Tipo de Administración (Entidad Adjudicadora)</th>
+<th data-quarto-table-cell-role="th">ID (Entidad Adjudicadora)</th>
+<th data-quarto-table-cell-role="th">Nombre (Entidad Adjudicadora)</th>
+<th data-quarto-table-cell-role="th">Población (Entidad Adjudicadora)</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">Empleados (descripción) (Requisitos de Participación)</th>
+<th data-quarto-table-cell-role="th">Condiciones de admisión (código) (Requisitos de Participación del Lote)</th>
+<th data-quarto-table-cell-role="th">Condiciones de admisión (Requisitos de Participación del Lote)</th>
+<th data-quarto-table-cell-role="th">Ubicación orgánica ID (6) (Entidad Adjudicadora Jerarquía)</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus_TendererStatus_ProcurementProjectLotID (Unmatched)</th>
+<th data-quarto-table-cell-role="th">El adjudicatario es una UTE (Adjudicatario)</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus_TenderingTerms_ProcurementNationalLegislationCode (Unmatched)</th>
+<th data-quarto-table-cell-role="th">Experiencia (descripción) (Requisitos de Participación)</th>
+<th data-quarto-table-cell-role="th">Ubicación orgánica ID (7) (Entidad Adjudicadora Jerarquía)</th>
+<th data-quarto-table-cell-role="th">deleted_on</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">zip</th>
+<th data-quarto-table-cell-role="th">file name</th>
+<th data-quarto-table-cell-role="th">entry</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td rowspan="5" data-quarto-table-cell-role="th" data-valign="top">licitacionesPerfilesContratanteCompleto3_2018.zip</td>
+<td rowspan="5" data-quarto-table-cell-role="th" data-valign="top">licitacionesPerfilesContratanteCompleto3_20200522_234632_1.atom</td>
+<td data-quarto-table-cell-role="th">494</td>
+<td>https://contrataciondelestado.es/sindicacion/l...</td>
+<td>Id licitación: LICT/99/024/2017/0063; Órgano d...</td>
+<td>Contratación de la Obra de creación de un nuev...</td>
+<td>2017-12-29 12:36:06.402000+00:00</td>
+<td>LICT/99/024/2017/0063</td>
+<td>RES</td>
+<td>5.0</td>
+<td>[G28207017]</td>
+<td>Director Gerente de FREMAP</td>
+<td>Majadahonda (Madrid)</td>
+<td>...</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">489</td>
+<td>https://contrataciondelestado.es/sindicacion/l...</td>
+<td>Id licitación: 357/17; Órgano de Contratación:...</td>
+<td>Suministro de mobiliario Hospital de Sagunt</td>
+<td>2017-12-29 12:44:12.934000+00:00</td>
+<td>357/17</td>
+<td>ADJ</td>
+<td>2.0</td>
+<td>[S4611001A]</td>
+<td>Departamento de Salud de Sagunto. Dirección Ec...</td>
+<td>Sagunto</td>
+<td>...</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">488</td>
+<td>https://contrataciondelestado.es/sindicacion/l...</td>
+<td>Id licitación: 7.1.23/17; Órgano de Contrataci...</td>
+<td>Red separativa de alcantarillado en el barrio ...</td>
+<td>2017-12-29 12:45:04.741000+00:00</td>
+<td>7.1.23/17</td>
+<td>RES</td>
+<td>2.0</td>
+<td>[S3933002B]</td>
+<td>Consejería de Universidades e Investigación, M...</td>
+<td>Santander</td>
+<td>...</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">486</td>
+<td>https://contrataciondelestado.es/sindicacion/l...</td>
+<td>Id licitación: 5/2016; Órgano de Contratación:...</td>
+<td>Prestación del servicio de vigilancia y limpie...</td>
+<td>2017-12-29 12:45:20.094000+00:00</td>
+<td>5/2016</td>
+<td>RES</td>
+<td>3.0</td>
+<td>[L01120271, P1202700I]</td>
+<td>Teniente de Alcalde Delegado del Área de Contr...</td>
+<td>Benicarló</td>
+<td>...</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">481</td>
+<td>https://contrataciondelestado.es/sindicacion/l...</td>
+<td>Id licitación: 1004217003400; Órgano de Contra...</td>
+<td>Servicios de mantenimiento y desarrollo de los...</td>
+<td>2017-12-29 12:48:25.547000+00:00</td>
+<td>1004217003400</td>
+<td>RES</td>
+<td>1.0</td>
+<td>[E00116302, S2800643E]</td>
+<td>Jefatura de la Sección Económico Financiera de...</td>
+<td>Madrid</td>
+<td>...</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+</tr>
+</tbody>
+</table>
+
+<p>5 rows × 195 columns</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="minors" class="level5">
+<h5 class="anchored" data-anchor-id="minors">Minors</h5>
+<div id="a5254ae6" class="cell">
+<div class="sourceCode cell-code" id="cb95"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb95-1"><a href="#cb95-1" aria-hidden="true" tabindex="-1"></a>minors_file <span class="op">=</span> directory <span class="op">/</span> <span class="st">'minors_sample.parquet'</span></span>
+<span id="cb95-2"><a href="#cb95-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> minors_file.exists()</span>
+<span id="cb95-3"><a href="#cb95-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(minors_file)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>/home/manu/Sync/UC3M/proyectos/2022/nextProcurement/sproc/samples/minors_sample.parquet</code></pre>
+</div>
+</div>
+<div id="f5d76679" class="cell">
+<div class="sourceCode cell-code" id="cb97"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb97-1"><a href="#cb97-1" aria-hidden="true" tabindex="-1"></a>minors_df <span class="op">=</span> pd.read_parquet(minors_file)</span>
+<span id="cb97-2"><a href="#cb97-2" aria-hidden="true" tabindex="-1"></a>minors_df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">id</th>
+<th data-quarto-table-cell-role="th">summary</th>
+<th data-quarto-table-cell-role="th">title</th>
+<th data-quarto-table-cell-role="th">updated</th>
+<th colspan="16" data-quarto-table-cell-role="th" data-halign="left">ContractFolderStatus</th>
+<th data-quarto-table-cell-role="th">deleted_on</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ContractFolderID</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatusCode</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">LocatedContractingParty</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ProcurementProject</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">TenderResult</th>
+<th data-quarto-table-cell-role="th">TendererStatus</th>
+<th data-quarto-table-cell-role="th">TenderResult</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">LocatedContractingParty</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">TenderingTerms</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">LocatedContractingParty</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">Party</th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th">TypeCode</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">WinningParty</th>
+<th data-quarto-table-cell-role="th">ProcurementProjectLotID</th>
+<th data-quarto-table-cell-role="th">WinningParty</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th">FundingProgramCode</th>
+<th data-quarto-table-cell-role="th">FundingProgram</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">PartyIdentification</th>
+<th data-quarto-table-cell-role="th">PartyName</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">PhysicalLocation</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">PartyLegalEntity</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ID</th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">Address</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">CompanyTypeCode</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">PostalZone</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">PartyIdentification</th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ID</th>
+<th data-quarto-table-cell-role="th">PartyIdentification</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ID</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">PartyIdentification</th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ID</th>
+<th data-quarto-table-cell-role="th">PartyName</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th">zip</th>
+<th data-quarto-table-cell-role="th">file name</th>
+<th data-quarto-table-cell-role="th">entry</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td rowspan="5" data-quarto-table-cell-role="th" data-valign="top">contratosMenoresPerfilesContratantes_2018.zip</td>
+<td rowspan="5" data-quarto-table-cell-role="th" data-valign="top">contratosMenoresPerfilesContratantes_20190225_140722_12.atom</td>
+<td data-quarto-table-cell-role="th">499</td>
+<td>https://contrataciondelestado.es/sindicacion/d...</td>
+<td>Id licitación: 000103/2017-1069; Órgano de Con...</td>
+<td>Reforma de elementos de ventilación exterior d...</td>
+<td>2018-01-02 07:41:12.989000+00:00</td>
+<td>000103/2017-1069</td>
+<td>RES</td>
+<td>[L01300275]</td>
+<td>Junta de Gobierno del Ayuntamiento de Molina d...</td>
+<td>Reforma de elementos de ventilación exterior d...</td>
+<td>2.0</td>
+<td>...</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>NaN</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">498</td>
+<td>https://contrataciondelestado.es/sindicacion/d...</td>
+<td>Id licitación: 29-2017-II; Órgano de Contratac...</td>
+<td>Servicios de calibrado y certificado de dos de...</td>
+<td>2018-01-02 07:48:40.056000+00:00</td>
+<td>29-2017-II</td>
+<td>RES</td>
+<td>[E04803403]</td>
+<td>Presidencia de la Confederación Hidrográfica d...</td>
+<td>Servicios de calibrado y certificado de dos de...</td>
+<td>2.0</td>
+<td>...</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>NaN</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">497</td>
+<td>https://contrataciondelestado.es/sindicacion/d...</td>
+<td>Id licitación: 013-07-2018; Órgano de Contrata...</td>
+<td>Patrocinio menor proyecto " Activitats C.I.N.E"</td>
+<td>2018-01-02 07:52:03.763000+00:00</td>
+<td>013-07-2018</td>
+<td>RES</td>
+<td>[A04013514]</td>
+<td>Agencia de Turismo de las Illes Balears</td>
+<td>Patrocinio menor proyecto " Activitats C.I.N.E"</td>
+<td>8.0</td>
+<td>...</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>NaN</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">496</td>
+<td>https://contrataciondelestado.es/sindicacion/d...</td>
+<td>Id licitación: CON/2017/51; Órgano de Contrata...</td>
+<td>Redacción EPIA - Legalización antena emisora d...</td>
+<td>2018-01-02 07:53:43.525000+00:00</td>
+<td>CON/2017/51</td>
+<td>RES</td>
+<td>[L01330117]</td>
+<td>Alcaldía del Ayuntamiento de Cangas del Narcea</td>
+<td>Redacción EPIA - Legalización antena emisora d...</td>
+<td>2.0</td>
+<td>...</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>NaN</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">495</td>
+<td>https://contrataciondelestado.es/sindicacion/d...</td>
+<td>Id licitación: 000047/2017-1069; Órgano de Con...</td>
+<td>Obras de reparación del Centro de Información ...</td>
+<td>2018-01-02 08:14:33.726000+00:00</td>
+<td>000047/2017-1069</td>
+<td>RES</td>
+<td>[L01300275]</td>
+<td>Junta de Gobierno del Ayuntamiento de Molina d...</td>
+<td>Obras de reparación del Centro de Información ...</td>
+<td>3.0</td>
+<td>...</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>NaN</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+</tr>
+</tbody>
+</table>
+
+<p>5 rows × 107 columns</p>
+</div>
+</div>
+</div>
+</div>
+<div id="87bdae42" class="cell">
+<div class="sourceCode cell-code" id="cb98"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb98-1"><a href="#cb98-1" aria-hidden="true" tabindex="-1"></a>flatten_columns_names(minors_df, data_scheme)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">id</th>
+<th data-quarto-table-cell-role="th">summary</th>
+<th data-quarto-table-cell-role="th">title</th>
+<th data-quarto-table-cell-role="th">updated</th>
+<th data-quarto-table-cell-role="th">Número de Expediente (Datos Generales del Expediente)</th>
+<th data-quarto-table-cell-role="th">Estado (Datos Generales del Expediente)</th>
+<th data-quarto-table-cell-role="th">ID (Entidad Adjudicadora)</th>
+<th data-quarto-table-cell-role="th">Nombre (Entidad Adjudicadora)</th>
+<th data-quarto-table-cell-role="th">Objeto del Contrato (Datos Generales del Expediente)</th>
+<th data-quarto-table-cell-role="th">Tipo de Contrato (Datos Generales del Expediente)</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">Código Postal (Adjudicatario)</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus_TendererStatus_ProcurementProjectLotID (Unmatched)</th>
+<th data-quarto-table-cell-role="th">El adjudicatario es una UTE (Adjudicatario)</th>
+<th data-quarto-table-cell-role="th">Ubicación orgánica ID (5) (Entidad Adjudicadora Jerarquía)</th>
+<th data-quarto-table-cell-role="th">Ubicación orgánica ID (6) (Entidad Adjudicadora Jerarquía)</th>
+<th data-quarto-table-cell-role="th">Descripción de Programas de Financiación (Condiciones de Licitación)</th>
+<th data-quarto-table-cell-role="th">Programas de Financiación (Condiciones de Licitación)</th>
+<th data-quarto-table-cell-role="th">Ubicación orgánica ID (7) (Entidad Adjudicadora Jerarquía)</th>
+<th data-quarto-table-cell-role="th">Ubicación orgánica (8) (Entidad Adjudicadora Jerarquía)</th>
+<th data-quarto-table-cell-role="th">deleted_on</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">zip</th>
+<th data-quarto-table-cell-role="th">file name</th>
+<th data-quarto-table-cell-role="th">entry</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td rowspan="5" data-quarto-table-cell-role="th" data-valign="top">contratosMenoresPerfilesContratantes_2018.zip</td>
+<td rowspan="5" data-quarto-table-cell-role="th" data-valign="top">contratosMenoresPerfilesContratantes_20190225_140722_12.atom</td>
+<td data-quarto-table-cell-role="th">499</td>
+<td>https://contrataciondelestado.es/sindicacion/d...</td>
+<td>Id licitación: 000103/2017-1069; Órgano de Con...</td>
+<td>Reforma de elementos de ventilación exterior d...</td>
+<td>2018-01-02 07:41:12.989000+00:00</td>
+<td>000103/2017-1069</td>
+<td>RES</td>
+<td>[L01300275]</td>
+<td>Junta de Gobierno del Ayuntamiento de Molina d...</td>
+<td>Reforma de elementos de ventilación exterior d...</td>
+<td>2.0</td>
+<td>...</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>NaN</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">498</td>
+<td>https://contrataciondelestado.es/sindicacion/d...</td>
+<td>Id licitación: 29-2017-II; Órgano de Contratac...</td>
+<td>Servicios de calibrado y certificado de dos de...</td>
+<td>2018-01-02 07:48:40.056000+00:00</td>
+<td>29-2017-II</td>
+<td>RES</td>
+<td>[E04803403]</td>
+<td>Presidencia de la Confederación Hidrográfica d...</td>
+<td>Servicios de calibrado y certificado de dos de...</td>
+<td>2.0</td>
+<td>...</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>NaN</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">497</td>
+<td>https://contrataciondelestado.es/sindicacion/d...</td>
+<td>Id licitación: 013-07-2018; Órgano de Contrata...</td>
+<td>Patrocinio menor proyecto " Activitats C.I.N.E"</td>
+<td>2018-01-02 07:52:03.763000+00:00</td>
+<td>013-07-2018</td>
+<td>RES</td>
+<td>[A04013514]</td>
+<td>Agencia de Turismo de las Illes Balears</td>
+<td>Patrocinio menor proyecto " Activitats C.I.N.E"</td>
+<td>8.0</td>
+<td>...</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>NaN</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">496</td>
+<td>https://contrataciondelestado.es/sindicacion/d...</td>
+<td>Id licitación: CON/2017/51; Órgano de Contrata...</td>
+<td>Redacción EPIA - Legalización antena emisora d...</td>
+<td>2018-01-02 07:53:43.525000+00:00</td>
+<td>CON/2017/51</td>
+<td>RES</td>
+<td>[L01330117]</td>
+<td>Alcaldía del Ayuntamiento de Cangas del Narcea</td>
+<td>Redacción EPIA - Legalización antena emisora d...</td>
+<td>2.0</td>
+<td>...</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>NaN</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">495</td>
+<td>https://contrataciondelestado.es/sindicacion/d...</td>
+<td>Id licitación: 000047/2017-1069; Órgano de Con...</td>
+<td>Obras de reparación del Centro de Información ...</td>
+<td>2018-01-02 08:14:33.726000+00:00</td>
+<td>000047/2017-1069</td>
+<td>RES</td>
+<td>[L01300275]</td>
+<td>Junta de Gobierno del Ayuntamiento de Molina d...</td>
+<td>Obras de reparación del Centro de Información ...</td>
+<td>3.0</td>
+<td>...</td>
+<td>[nan]</td>
+<td>[nan]</td>
+<td>NaN</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>[nan]</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+</tr>
+</tbody>
+</table>
+
+<p>5 rows × 107 columns</p>
+</div>
+</div>
+</div>
+</div>
+
+
+</section>
+</section>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/manuvazquez\.github\.io\/sproc");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/manuvazquez/sproc/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

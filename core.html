@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.554">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Main functionality.">
+
+<title>sproc - core</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="sproc - core">
+<meta property="og:description" content="Main functionality.">
+<meta property="og:site_name" content="sproc">
+<meta name="twitter:title" content="sproc - core">
+<meta name="twitter:description" content="Main functionality.">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">sproc</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./core.html">core</a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">sproc</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./core.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">core</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./structure.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">structure</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./xml.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">xml</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./postprocess.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">postprocess</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bundle.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bundle</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./hierarchical.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">hier</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./io.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">io</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./parse.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">parse</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./assemble.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">assemble</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./extend.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">extend</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./download.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">download</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#processing-a-single-zip-file" id="toc-processing-a-single-zip-file" class="nav-link active" data-scroll-target="#processing-a-single-zip-file">Processing a single zip file</a>
+  <ul class="collapse">
+  <li><a href="#cli_read_single_zip" id="toc-cli_read_single_zip" class="nav-link" data-scroll-target="#cli_read_single_zip">cli_read_single_zip</a></li>
+  </ul></li>
+  <li><a href="#extending-historical-data" id="toc-extending-historical-data" class="nav-link" data-scroll-target="#extending-historical-data">Extending historical data</a>
+  <ul class="collapse">
+  <li><a href="#cli_extend_parquet_with_zip" id="toc-cli_extend_parquet_with_zip" class="nav-link" data-scroll-target="#cli_extend_parquet_with_zip">cli_extend_parquet_with_zip</a></li>
+  </ul></li>
+  <li><a href="#renaming-columns" id="toc-renaming-columns" class="nav-link" data-scroll-target="#renaming-columns">Renaming columns</a>
+  <ul class="collapse">
+  <li><a href="#cli_rename_columns" id="toc-cli_rename_columns" class="nav-link" data-scroll-target="#cli_rename_columns">cli_rename_columns</a></li>
+  </ul></li>
+  <li><a href="#reading-a-bunch-of-zip-files" id="toc-reading-a-bunch-of-zip-files" class="nav-link" data-scroll-target="#reading-a-bunch-of-zip-files">Reading a bunch of zip files</a>
+  <ul class="collapse">
+  <li><a href="#read_zips" id="toc-read_zips" class="nav-link" data-scroll-target="#read_zips">read_zips</a></li>
+  <li><a href="#cli" id="toc-cli" class="nav-link" data-scroll-target="#cli">CLI</a></li>
+  <li><a href="#cli_read_zips" id="toc-cli_read_zips" class="nav-link" data-scroll-target="#cli_read_zips">cli_read_zips</a></li>
+  </ul></li>
+  <li><a href="#downloading-new-data" id="toc-downloading-new-data" class="nav-link" data-scroll-target="#downloading-new-data">Downloading new data</a>
+  <ul class="collapse">
+  <li><a href="#dl" id="toc-dl" class="nav-link" data-scroll-target="#dl">dl</a></li>
+  <li><a href="#cli-1" id="toc-cli-1" class="nav-link" data-scroll-target="#cli-1">CLI</a></li>
+  <li><a href="#cli_dl" id="toc-cli_dl" class="nav-link" data-scroll-target="#cli_dl">cli_dl</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/manuvazquez/sproc/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">core</h1>
+</div>
+
+<div>
+  <div class="description">
+    Main functionality.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<p>Directory where the zip files are stored</p>
+<div id="cell-3" class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>directory <span class="op">=</span> pathlib.Path.cwd().parent <span class="op">/</span> <span class="st">'samples'</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> directory.exists()</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>directory</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>Path('/home/manu/Sync/UC3M/proyectos/2022/nextProcurement/sproc/samples')</code></pre>
+</div>
+</div>
+<section id="processing-a-single-zip-file" class="level2">
+<h2 class="anchored" data-anchor-id="processing-a-single-zip-file">Processing a single zip file</h2>
+<p>A function to read a single <em>zip</em> file from the command line. One could also achieve the same result with <a href="https://manuvazquez.github.io/sproc/core.html#cli_read_zips"><code>cli_read_zips</code></a>, though this is slightly more efficient.</p>
+<hr>
+<p><a href="https://github.com/manuvazquez/sproc/blob/main/sproc/core.py#L27" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="cli_read_single_zip" class="level3">
+<h3 class="anchored" data-anchor-id="cli_read_single_zip">cli_read_single_zip</h3>
+<blockquote class="blockquote">
+<pre><code> cli_read_single_zip (args:list=None)</code></pre>
+</blockquote>
+<p><em>Parses command-line arguments to read a single zip file exploiting the functionality of <code>sproc.assemble</code></em></p>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>args</td>
+<td>list</td>
+<td>None</td>
+<td>Command-line arguments</td>
+</tr>
+<tr class="even">
+<td><strong>Returns</strong></td>
+<td><strong>None</strong></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<div id="cell-7" class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>zip_file <span class="op">=</span> directory <span class="op">/</span><span class="st">'yearly'</span> <span class="op">/</span> <span class="st">'PlataformasAgregadasSinMenores_2018.zip'</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> zip_file.exists()</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'</span><span class="sc">{</span>zip_file<span class="op">=</span><span class="sc">}</span><span class="ss">'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>zip_file=Path('/home/manu/Sync/UC3M/proyectos/2022/nextProcurement/sproc/samples/yearly/PlataformasAgregadasSinMenores_2018.zip')</code></pre>
+</div>
+</div>
+<div id="cell-8" class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>output_file <span class="op">=</span> directory <span class="op">/</span> <span class="st">'year_2018.parquet'</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'</span><span class="sc">{</span>output_file<span class="op">=</span><span class="sc">}</span><span class="ss">'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>output_file=Path('/home/manu/Sync/UC3M/proyectos/2022/nextProcurement/sproc/samples/year_2018.parquet')</code></pre>
+</div>
+</div>
+<div id="cell-9" class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>args <span class="op">=</span> [zip_file.as_posix(), output_file.as_posix()]</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>cli_read_single_zip(args)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-10" class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>2018-2021_20samples.parquet
+extended_sample.parquet
+extended_sample_renamed.parquet
+gencat/
+insiders_sample.parquet
+merged.parquet
+minors_sample.parquet
+PLACE.yaml
+PlataformasAgregadasSinMenores_20220104_030016_1.atom
+PlataformasAgregadasSinMenores_20220104_030016_1_single.atom
+PlataformasAgregadasSinMenores_202201_05-06.zip
+PlataformasAgregadasSinMenores_202201_08-11.zip
+PlataformasAgregadasSinMenores_202201_28-29.zip
+README.md
+renamed_cols_extended_sample.parquet
+year_2018.parquet
+yearly/</code></pre>
+</div>
+</div>
+<div id="cell-11" class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>pd.read_parquet(output_file).head(<span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">id</th>
+<th data-quarto-table-cell-role="th">summary</th>
+<th data-quarto-table-cell-role="th">title</th>
+<th colspan="15" data-quarto-table-cell-role="th" data-halign="left">ContractFolderStatus</th>
+<th data-quarto-table-cell-role="th">updated</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus</th>
+<th data-quarto-table-cell-role="th">deleted_on</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ContractFolderID</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">LocatedContractingParty</th>
+<th colspan="4" data-quarto-table-cell-role="th" data-halign="left">ProcurementProject</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">TechnicalDocumentReference</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">LocatedContractingParty</th>
+<th colspan="3" data-quarto-table-cell-role="th" data-halign="left">TenderingProcess</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ContractFolderStatusCode</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">Party</th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th">TypeCode</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">BudgetAmount</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">ID</th>
+<th data-quarto-table-cell-role="th">Attachment</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ParentLocatedParty</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ParticipationRequestReceptionPeriod</th>
+<th data-quarto-table-cell-role="th">TenderSubmissionDeadlinePeriod</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">PartyIdentification</th>
+<th data-quarto-table-cell-role="th">PartyName</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">EstimatedOverallContractAmount</th>
+<th data-quarto-table-cell-role="th">TaxExclusiveAmount</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ExternalReference</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th">EndDate</th>
+<th data-quarto-table-cell-role="th">EndTime</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ID</th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">URI</th>
+<th colspan="2" data-quarto-table-cell-role="th" data-halign="left">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">PartyName</th>
+<th data-quarto-table-cell-role="th">ParentLocatedParty</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th">PartyName</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Name</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+<tr class="header">
+<th data-quarto-table-cell-role="th">zip</th>
+<th data-quarto-table-cell-role="th">file name</th>
+<th data-quarto-table-cell-role="th">entry</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td rowspan="2" data-quarto-table-cell-role="th" data-valign="top">PlataformasAgregadasSinMenores_2018.zip</td>
+<td rowspan="2" data-quarto-table-cell-role="th" data-valign="top">PlataformasAgregadasSinMenores_20180217_180137_1.atom</td>
+<td data-quarto-table-cell-role="th">453</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Expediente: 1284/17, Entidad: Diputación Provi...</td>
+<td>Refuerzo de Firme en la VP 3001 Renedo de Esgu...</td>
+<td>1284/17</td>
+<td>L02000047</td>
+<td>Diputación Provincial de Valladolid</td>
+<td>Refuerzo de Firme en la VP 3001 Renedo de Esgu...</td>
+<td>3.0</td>
+<td>89917.95</td>
+<td>89917.95</td>
+<td>...</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>2017-11-02</td>
+<td>23:59:00</td>
+<td>2017-11-02 23:59:00+00:00</td>
+<td>[2018-01-02 08:01:52.024000+00:00]</td>
+<td>[RES]</td>
+<td>NaT</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">452</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Expediente: 1282/17, Entidad: Diputación Provi...</td>
+<td>Refuerzo de Firme en la VP 6603 Mota del Marqu...</td>
+<td>1282/17</td>
+<td>L02000047</td>
+<td>Diputación Provincial de Valladolid</td>
+<td>Refuerzo de Firme en la VP 6603 Mota del Marqu...</td>
+<td>3.0</td>
+<td>175708.46</td>
+<td>175708.46</td>
+<td>...</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>2017-11-02</td>
+<td>23:59:00</td>
+<td>2017-11-02 23:59:00+00:00</td>
+<td>[2018-01-02 08:02:24.833000+00:00]</td>
+<td>[RES]</td>
+<td>NaT</td>
+</tr>
+</tbody>
+</table>
+
+<p>2 rows × 41 columns</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="extending-historical-data" class="level2">
+<h2 class="anchored" data-anchor-id="extending-historical-data">Extending historical data</h2>
+<p>A function to extend an existing <em>parquet</em> file with new data in a <em>zip</em> file.</p>
+<hr>
+<p><a href="https://github.com/manuvazquez/sproc/blob/main/sproc/core.py#L50" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="cli_extend_parquet_with_zip" class="level3">
+<h3 class="anchored" data-anchor-id="cli_extend_parquet_with_zip">cli_extend_parquet_with_zip</h3>
+<blockquote class="blockquote">
+<pre><code> cli_extend_parquet_with_zip (args:list=None)</code></pre>
+</blockquote>
+<p><em>Parses command-line arguments to be passed to <a href="https://manuvazquez.github.io/sproc/extend.html#parquet_with_zip"><code>sproc.extend.parquet_with_zip</code></a></em></p>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>args</td>
+<td>list</td>
+<td>None</td>
+<td>Command-line arguments</td>
+</tr>
+<tr class="even">
+<td><strong>Returns</strong></td>
+<td><strong>None</strong></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Testing with some sample files</p>
+<div id="cell-16" class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>history_file <span class="op">=</span> directory <span class="op">/</span><span class="st">'2018-2021_20samples.parquet'</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> history_file.exists()</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'</span><span class="sc">{</span>history_file<span class="op">=</span><span class="sc">}</span><span class="ss">'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>history_file=Path('/home/manu/Sync/UC3M/proyectos/2022/nextProcurement/sproc/samples/2018-2021_20samples.parquet')</code></pre>
+</div>
+</div>
+<div id="cell-17" class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>new_zip_file <span class="op">=</span> directory <span class="op">/</span> <span class="st">'PlataformasAgregadasSinMenores_202201_28-29.zip'</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> new_zip_file.exists()</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'</span><span class="sc">{</span>new_zip_file<span class="op">=</span><span class="sc">}</span><span class="ss">'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>new_zip_file=Path('/home/manu/Sync/UC3M/proyectos/2022/nextProcurement/sproc/samples/PlataformasAgregadasSinMenores_202201_28-29.zip')</code></pre>
+</div>
+</div>
+<div id="cell-18" class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>output_file <span class="op">=</span> directory <span class="op">/</span> <span class="st">'extended_sample.parquet'</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>output_file</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>Path('/home/manu/Sync/UC3M/proyectos/2022/nextProcurement/sproc/samples/extended_sample.parquet')</code></pre>
+</div>
+</div>
+<div id="cell-19" class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>args <span class="op">=</span> [history_file.as_posix(), new_zip_file.as_posix(), output_file.as_posix()]</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>cli_extend_parquet_with_zip(args)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-20" class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>2018-2021_20samples.parquet
+extended_sample.parquet
+extended_sample_renamed.parquet
+gencat/
+insiders_sample.parquet
+merged.parquet
+minors_sample.parquet
+PLACE.yaml
+PlataformasAgregadasSinMenores_20220104_030016_1.atom
+PlataformasAgregadasSinMenores_20220104_030016_1_single.atom
+PlataformasAgregadasSinMenores_202201_05-06.zip
+PlataformasAgregadasSinMenores_202201_08-11.zip
+PlataformasAgregadasSinMenores_202201_28-29.zip
+README.md
+renamed_cols_extended_sample.parquet
+year_2018.parquet
+yearly/</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="renaming-columns" class="level2">
+<h2 class="anchored" data-anchor-id="renaming-columns">Renaming columns</h2>
+<p>A function to <em>flatten</em> a hierarchical (column-multiindex) <code>pd.DataFrame</code> using a given <em>naming scheme</em> or a default one.</p>
+<hr>
+<p><a href="https://github.com/manuvazquez/sproc/blob/main/sproc/core.py#L72" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="cli_rename_columns" class="level3">
+<h3 class="anchored" data-anchor-id="cli_rename_columns">cli_rename_columns</h3>
+<blockquote class="blockquote">
+<pre><code> cli_rename_columns (args:list=None)</code></pre>
+</blockquote>
+<p><em>Parses command-line arguments to be passed to <a href="https://manuvazquez.github.io/sproc/hierarchical.html#flatten_columns_names"><code>sproc.hier.flatten_columns_names</code></a></em></p>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>args</td>
+<td>list</td>
+<td>None</td>
+<td>Command-line arguments</td>
+</tr>
+<tr class="even">
+<td><strong>Returns</strong></td>
+<td><strong>Path</strong></td>
+<td></td>
+<td><strong>Output file</strong></td>
+</tr>
+</tbody>
+</table>
+<p>A local file encompassing a name <em>mapping</em>…</p>
+<div id="cell-25" class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>mapping_file <span class="op">=</span> directory <span class="op">/</span> <span class="st">'PLACE.yaml'</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> mapping_file.exists()</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>mapping_file</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>Path('/home/manu/Sync/UC3M/proyectos/2022/nextProcurement/sproc/samples/PLACE.yaml')</code></pre>
+</div>
+</div>
+<p>…is used to rename the columns</p>
+<div id="cell-27" class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>args <span class="op">=</span> [output_file.as_posix(), <span class="st">'--from-local-file'</span>, mapping_file.as_posix()]</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>renamed_cols_output_file <span class="op">=</span> cli_rename_columns(args)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>renamed_cols_output_file_df <span class="op">=</span> pd.read_parquet(renamed_cols_output_file).head(<span class="dv">2</span>)</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>renamed_cols_output_file_df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">id</th>
+<th data-quarto-table-cell-role="th">summary</th>
+<th data-quarto-table-cell-role="th">title</th>
+<th data-quarto-table-cell-role="th">Número de Expediente</th>
+<th data-quarto-table-cell-role="th">Nombre</th>
+<th data-quarto-table-cell-role="th">Objeto del Contrato</th>
+<th data-quarto-table-cell-role="th">Tipo de Contrato</th>
+<th data-quarto-table-cell-role="th">Valor estimado del contrato</th>
+<th data-quarto-table-cell-role="th">Presupuesto base sin impuestos</th>
+<th data-quarto-table-cell-role="th">Clasificación CPV</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">ID</th>
+<th data-quarto-table-cell-role="th">Lote</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus - LocatedContractingParty - ParentLocatedParty - ParentLocatedParty - ParentLocatedParty - PartyName - Name</th>
+<th data-quarto-table-cell-role="th">Presentación de Oferta</th>
+<th data-quarto-table-cell-role="th">ContractFolderStatus - LocatedContractingParty - ParentLocatedParty - ParentLocatedParty - ParentLocatedParty - ParentLocatedParty - PartyName - Name</th>
+<th data-quarto-table-cell-role="th">Presentación de Oferta (Observaciones)</th>
+<th data-quarto-table-cell-role="th">URL perfil de contratante</th>
+<th data-quarto-table-cell-role="th">deleted_on</th>
+<th data-quarto-table-cell-role="th">updated</th>
+<th data-quarto-table-cell-role="th">Estado</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">zip</th>
+<th data-quarto-table-cell-role="th">file name</th>
+<th data-quarto-table-cell-role="th">entry</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td rowspan="2" data-quarto-table-cell-role="th" data-valign="top">PlataformasAgregadasSinMenores_2018.zip</td>
+<td rowspan="2" data-quarto-table-cell-role="th" data-valign="top">PlataformasAgregadasSinMenores_20180217_180137_1.atom</td>
+<td data-quarto-table-cell-role="th">453</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Expediente: 1284/17, Entidad: Diputación Provi...</td>
+<td>Refuerzo de Firme en la VP 3001 Renedo de Esgu...</td>
+<td>1284/17</td>
+<td>Diputación Provincial de Valladolid</td>
+<td>Refuerzo de Firme en la VP 3001 Renedo de Esgu...</td>
+<td>3.0</td>
+<td>89917.95</td>
+<td>89917.95</td>
+<td>[45233142.0]</td>
+<td>...</td>
+<td>L02000047</td>
+<td>[1.0]</td>
+<td>&lt;NA&gt;</td>
+<td>2017-11-02 23:59:00+00:00</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+<td>[2018-01-02 08:01:52.024000+00:00]</td>
+<td>[RES]</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">452</td>
+<td>https://contrataciondelestado.es/sindicacion/P...</td>
+<td>Expediente: 1282/17, Entidad: Diputación Provi...</td>
+<td>Refuerzo de Firme en la VP 6603 Mota del Marqu...</td>
+<td>1282/17</td>
+<td>Diputación Provincial de Valladolid</td>
+<td>Refuerzo de Firme en la VP 6603 Mota del Marqu...</td>
+<td>3.0</td>
+<td>175708.46</td>
+<td>175708.46</td>
+<td>[45233142.0]</td>
+<td>...</td>
+<td>L02000047</td>
+<td>[1.0]</td>
+<td>&lt;NA&gt;</td>
+<td>2017-11-02 23:59:00+00:00</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>&lt;NA&gt;</td>
+<td>NaT</td>
+<td>[2018-01-02 08:02:24.833000+00:00]</td>
+<td>[RES]</td>
+</tr>
+</tbody>
+</table>
+
+<p>2 rows × 43 columns</p>
+</div>
+</div>
+</div>
+</div>
+<p>Columns are <strong>not</strong> multiindexed anymore</p>
+<div id="cell-29" class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>renamed_cols_output_file_df.columns[:<span class="dv">5</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>Index(['id', 'summary', 'title', 'Número de Expediente', 'Nombre'], dtype='object')</code></pre>
+</div>
+</div>
+<p>A <strong>remote</strong> <code>naming</code> scheme stored in the repository can also be used</p>
+<div id="cell-31" class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>args <span class="op">=</span> [output_file.as_posix(), <span class="st">'--from-repository-file'</span>, <span class="st">'outsiders.yaml'</span>]</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>renamed_cols_output_file <span class="op">=</span> cli_rename_columns(args)</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>pd.read_parquet(renamed_cols_output_file).head(<span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="reading-a-bunch-of-zip-files" class="level2">
+<h2 class="anchored" data-anchor-id="reading-a-bunch-of-zip-files">Reading a bunch of zip files</h2>
+<p>It receives a <code>list</code> of <em>zip</em> files and returns a (column-hierarchical) <code>pd.DataFrame</code> encompassing all the data</p>
+<hr>
+<p><a href="https://github.com/manuvazquez/sproc/blob/main/sproc/core.py#L154" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="read_zips" class="level3">
+<h3 class="anchored" data-anchor-id="read_zips">read_zips</h3>
+<blockquote class="blockquote">
+<pre><code> read_zips (files:list[str|pathlib.Path])</code></pre>
+</blockquote>
+<p><em>Build a <code>DataFrame</code> out of a bunch of zip files</em></p>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>files</td>
+<td>list</td>
+<td>Input files</td>
+</tr>
+<tr class="even">
+<td><strong>Returns</strong></td>
+<td><strong>DataFrame</strong></td>
+<td><strong>Procurement data</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Let us pick a couple of files for testing</p>
+<div id="cell-36" class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>zip_files <span class="op">=</span> [<span class="st">'PlataformasAgregadasSinMenores_2018.zip'</span>, <span class="st">'PlataformasAgregadasSinMenores_2019.zip'</span>]</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>zip_files <span class="op">=</span> [directory<span class="op">/</span> <span class="st">'yearly'</span> <span class="op">/</span> e <span class="cf">for</span> e <span class="kw">in</span> zip_files]</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>zip_files</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-37" class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> read_zips(zip_files)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>df.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="cli" class="level3">
+<h3 class="anchored" data-anchor-id="cli">CLI</h3>
+<p>A companion function to allow using the above from the command-line.</p>
+<hr>
+<p><a href="https://github.com/manuvazquez/sproc/blob/main/sproc/core.py#L216" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="cli_read_zips" class="level3">
+<h3 class="anchored" data-anchor-id="cli_read_zips">cli_read_zips</h3>
+<blockquote class="blockquote">
+<pre><code> cli_read_zips (args:list=None)</code></pre>
+</blockquote>
+<p><em>Parses command-line arguments to be passed to <a href="https://manuvazquez.github.io/sproc/core.html#read_zips"><code>read_zips</code></a></em></p>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>args</td>
+<td>list</td>
+<td>None</td>
+<td>Command-line arguments</td>
+</tr>
+<tr class="even">
+<td><strong>Returns</strong></td>
+<td><strong>None</strong></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<div id="cell-41" class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>cli_read_zips([e.as_posix() <span class="cf">for</span> e <span class="kw">in</span> zip_files] <span class="op">+</span> <span class="st">'-o o.parquet'</span>.split())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="downloading-new-data" class="level2">
+<h2 class="anchored" data-anchor-id="downloading-new-data">Downloading new data</h2>
+<p>Core function to download new data and updated existing local structures.</p>
+<hr>
+<p><a href="https://github.com/manuvazquez/sproc/blob/main/sproc/core.py#L264" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="dl" class="level3">
+<h3 class="anchored" data-anchor-id="dl">dl</h3>
+<blockquote class="blockquote">
+<pre><code> dl (kind:str, output_directory:str|pathlib.Path)</code></pre>
+</blockquote>
+<p><em>Download data or update local one</em></p>
+<table class="table">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 38%">
+<col style="width: 52%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>kind</td>
+<td>str</td>
+<td>One of ‘outsiders’, ‘insiders’, or ‘minors’</td>
+</tr>
+<tr class="even">
+<td>output_directory</td>
+<td>str | pathlib.Path</td>
+<td>The path where data is to be stored</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="cli-1" class="level3">
+<h3 class="anchored" data-anchor-id="cli-1">CLI</h3>
+<p>A companion function to allow using the above from the command-line.</p>
+<hr>
+<p><a href="https://github.com/manuvazquez/sproc/blob/main/sproc/core.py#L351" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="cli_dl" class="level3">
+<h3 class="anchored" data-anchor-id="cli_dl">cli_dl</h3>
+<blockquote class="blockquote">
+<pre><code> cli_dl (args:list=None)</code></pre>
+</blockquote>
+<p><em>Parses command-line arguments to be passed to <a href="https://manuvazquez.github.io/sproc/core.html#dl"><code>dl</code></a></em></p>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>args</td>
+<td>list</td>
+<td>None</td>
+<td>Command-line arguments</td>
+</tr>
+<tr class="even">
+<td><strong>Returns</strong></td>
+<td><strong>None</strong></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<div id="cell-48" class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># output_directory = pathlib.Path.cwd().parent / 'data' / 'plataforma'</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="co"># args = ['outsiders', '-o', output_directory.as_posix()]</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="co"># cli_update(args)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/manuvazquez\.github\.io\/sproc");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/manuvazquez/sproc/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
