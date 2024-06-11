@@ -1,0 +1,14 @@
+#yjupyterlab jupyter_console
+#nbdev"="2.3.11
+colorama
+python-magic
+pyyaml
+#html2text
+lxml
+pandas
+pyarrow
+openpyxl
+ruamel.yaml
+#rich ipywidgets
+tqdm 
+ipywidgets

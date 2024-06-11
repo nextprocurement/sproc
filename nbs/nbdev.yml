@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "sproc"
+  site-url: "https://manuvazquez.github.io/sproc"
+  description: "Spanish procurement"
+  repo-branch: main
+  repo-url: "https://github.com/manuvazquez/sproc"
