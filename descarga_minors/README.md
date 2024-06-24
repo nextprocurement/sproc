@@ -1,34 +1,45 @@
-Este código en Python está diseñado para descargar y *analizar* los datos de contratos menores de los portales de transparencia de los Ayuntamientos de Zaragoza y Madrid. Los resultados se guardan en archivos en formato JSON que pueden ser leídos fácilmente en muchos lenguajes de programación.
+# Script de Descarga de Datos de Contratación
 
-Este proyecto se desarrolló con herramientas estándar de Python, y cada función está documentada para facilitar su comprensión y uso. Si te interesa conocer el funcionamiento interno de alguna función, puedes revisar el código directamente en el archivo fuente.
+Este script en Python facilita la descarga automatizada de datos de contratos menores desde los portales de transparencia de los Ayuntamientos de Zaragoza y Madrid, así como de la Generalitat de Catalunya. Además, ofrece la opción de descargar todos los conjuntos de datos de manera simultánea.
 
-## Instalación
+## Requisitos
 
-Para ejecutar este script, necesitarás instalar las siguientes librerías de Python:
+Para utilizar este script, es necesario instalar las siguientes bibliotecas de Python:
 
-    pip install requests beautifulsoup4
+- **Requests**: Permite realizar solicitudes HTTP.
+- **BeautifulSoup4**: Utilizado para parsear documentos HTML.
+- **Pandas**: Proporciona herramientas para la manipulación y análisis de datos.
+- **Sodapy**: Facilita la interacción con APIs que emplean el protocolo Socrata Open Data (SODA).
 
-## Cómo usar
+## Instalación de las bibliotecas
 
-El software se puede utilizar como un script independiente desde la línea de comandos.
+Ejecute el siguiente comando para instalar todas las dependencias necesarias:
 
-### Scripts
+pip install requests beautifulsoup4 pandas sodapy
 
-#### Descargando datos
+#### Ejemplos de Comandos
 
-El comando principal para ejecutar el script es el siguiente, donde debes especificar la ciudad y la ruta donde se guardarán los datos. Para Madrid, también puedes especificar desde qué año deseas comenzar las descargas:
+- **Zaragoza** - Descargar contratos menores y guardarlos en un archivo JSON:
 
-    python script.py zaragoza --file_path /ruta/a/contratos_menores_zaragoza.json
-    python script.py madrid --file_path /ruta/a/contratos_menores_madrid --start_year 2018
+ python3 script.py zaragoza --file_path /ruta/a contratos_menores_zaragoza.json
+
+- **Madrid** - Descargar contratos menores desde el año 2018:
+
+ python3 script.py madrid --start_year 2018 --file_path /ruta/a/contratos_menores_madrid
+
+- **Cataluña** - Descargar datos de contratación pública:
+
+ python3 script.py gencat --file_path /ruta/a/contratacion_publica_catalunya.csv
+
+El comando principal para ejecutar el script y descargar simultáneamente todos los datos es el siguiente:
+
+ python3 script.py all --file_path /ruta/a/destino/descargas
 
 ### Funcionamiento detallado
 
-El script tienes las funciones de `download_contracts_zaragoza` y `download_contracts_madrid` que son las funciones principales para descargar los datos de contratos menores de Zaragoza y Madrid respectivamente. Estas funciones gestionan la paginación de los datos y aseguran la integridad de las descargas mediante la comprobación de errores en las respuestas HTTP.
+El script incluye funciones específicas para la descarga de datos:
 
-#### Procesando un solo archivo JSON
-
-Por ejemplo, al ejecutar el script para Zaragoza, se descargan todos los contratos menores disponibles y se escriben en un archivo JSON especificado. El argumento `--file_path` puede usarse para especificar un directorio diferente al actual.
-
-#### Procesando datos de Madrid
-
-Para Madrid, el script descarga archivos directamente desde los enlaces encontrados en la página de transparencia. Puedes especificar el año inicial con `--start_year`, y solo se descargarán los contratos de ese año en adelante. Por defectose descargan a partir del 2018 incluido.
+- download_contracts_gencat: Descarga datos desde la Generalitat de Catalunya.
+- download_contracts_zaragoza: Realiza solicitudes a la API de Zaragoza y almacena los resultados en formato JSON.
+- download_contracts_madrid: Descarga archivos directamente desde la página de transparencia de Madrid basados en el año de publicación.
+- download_all_contracts: Coordina la descarga de todos los datos mencionados utilizando las funciones correspondientes.

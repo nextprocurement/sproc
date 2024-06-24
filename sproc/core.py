@@ -251,15 +251,6 @@ def generar_mapeo_col_aplanadas(df):
         mapeo[nombre_aplanado] = col  
     return mapeo
 
-def value_to_str(value):  
-    """
-    Convierte un valor float a una cadena str.
-    Si el valor no es un flotante, se devuelve el valor original.
-    """
-    if isinstance(value, float):
-        return str(value)
-    return value
-
 # %% ../nbs/00_core.ipynb 46
 def dl(
     kind: str, # One of 'outsiders', 'insiders', or 'minors'
@@ -336,14 +327,18 @@ def dl(
     # Generar el mapeo de columnas aplanadas
     mapeo_col_aplanadas = generar_mapeo_col_aplanadas(parquet_df)
     
-    columna_objetivo = ('ContractFolderStatus.TenderingTerms.FundingProgram', 'ContractFolderStatus.TenderingTerms.ProcurementNationalLegislationCode')
-    
+    # Define las columnas objetivo
+    columna_objetivo = (
+        'ContractFolderStatus.TenderingTerms.FundingProgram',
+        'ContractFolderStatus.TenderingTerms.ProcurementNationalLegislationCode'
+    )    
     for col_obj in columna_objetivo:
         if col_obj in mapeo_col_aplanadas:
             col_original = mapeo_col_aplanadas[col_obj]
-            parquet_df[col_original] = parquet_df[col_original].apply(lambda x: value_to_str(x))
+            if pd.api.types.is_object_dtype(parquet_df[col_original]):
+                parquet_df[col_original] = parquet_df[col_original].astype('string')           
         else:
-            print(f"La columna '{col_obj}' no se encontró en el DataFrame. Pero la descarga se ha completado correctamente")
+            print(f"La columna '{col_obj}' no se está en el DataFrame. Pero la descarga se ha completado correctamente")
     # parquet_df.to_parquet(output_file.with_stem('new'))
     parquet_df.to_parquet(output_file)
 
