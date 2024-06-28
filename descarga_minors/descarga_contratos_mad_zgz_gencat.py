@@ -49,39 +49,66 @@ def download_contracts_gencat(domain, dataset_identifier, destination_directory,
     file_path = os.path.join(destination_directory, file_name)
     full_df.to_csv(file_path, index=False)
     print(f"Datos descargados y guardados en {file_path}")
-    
-def download_contracts_zaragoza(base_url, params, file_path):
-    # Initialize a list to store contract details and a counter for downloaded contracts.
-    contracts = []
-    total_downloaded = 0
 
+# Auxiliary function to get contract IDs from Zaragoza's API
+def get_contract_ids(base_url, params):
+    # Initialize a list to store contract details and a counter for downloaded contracts.
+    contract_ids = []
+    total_downloaded = 0
+    
     # Continuously request data until all pages are processed.
     while True:
         response = requests.get(base_url, params=params)
         # Check if the HTTP request was successful.
         if response.status_code != 200:
-            print(f"Request error: {response.status_code}")
+            print(f"Error de solicitud: {response.status_code}")
             break
-
+        
         # Parse JSON response and extend the contract list with new data.
         data = response.json()
-        contracts.extend(data['result'])
+        contract_ids.extend([item['id'] for item in data['result']])
         total_downloaded += len(data['result'])
-
+        
         # Print the progress of downloaded contracts.
         print(f"Descargados {total_downloaded} de {data['totalCount']} contracts.")
-
+        
         # Check if there are more pages of data to request.
         if params['start'] + params['rows'] < data['totalCount']:
             params['start'] += params['rows']  
         else:
             break
+           
+    return contract_ids 
 
+def download_contracts_zaragoza(contract_ids, detail_url_template, file_path):
+    """Descarga los detalles de cada contrato y los guarda en un archivo JSON."""
+    contracts = []
+    total_contracts = len(contract_ids)
+    processed_contracts = 0
+    
+    for contract_id in contract_ids:
+        detail_url = f"{detail_url_template}/{contract_id}.json"
+        response = requests.get(detail_url)
+        if response.status_code == 200:
+            contracts.append(response.json())
+        else:
+            print(f"Error al obtener detalles del contrato {contract_id}: {response.status_code}")
+        
+        processed_contracts += 1
+        print(f"Procesado {processed_contracts}/{total_contracts} contratos.")
+    
     # Guardar los resultados en un archivo JSON
     with open(file_path, 'w', encoding='utf-8') as file:
         json.dump(contracts, file, ensure_ascii=False, indent=4)
-    print(f"Datos descargados y guardados en {file_path}")
+    
+    print(f"Detalles de los contratos descargados y guardados en {file_path}")
 
+def download_zaragoza_wrapper(base_url, params, detail_base_url, file_path):
+    # Obtener los IDs de los contratos primero
+    contract_ids = get_contract_ids(base_url, params)
+    # Luego descargar los detalles de los contratos
+    download_contracts_zaragoza(contract_ids, detail_base_url, file_path)
+    
 def download_contracts_madrid(url, destination_directory, start_year,file_path):
     # Ensure the destination directory exists, create if necessary.
     if not os.path.exists(destination_directory):
@@ -126,11 +153,17 @@ def download_all_contracts(destination_directory):
             }
         },
         {
-            "func": download_contracts_zaragoza,
+            "func": download_zaragoza_wrapper,
             "params": {
                 "base_url": 'https://www.zaragoza.es/sede/servicio/contratacion-publica/contrato.json',
-                "params": {'contratoMenor': 'true', 'start': 0, 'rows': 50},
-                "file_path": os.path.join(destination_directory, "contratos_menores_zaragoza.json")
+                "params": {
+                    'procedimiento.id': '10',
+                    'fl': 'id',
+                    'start': 0,
+                    'rows': 50
+                },
+                "detail_base_url": "https://www.zaragoza.es/sede/servicio/contratacion-publica",
+                "file_path": os.path.join(destination_directory, "contratos_zaragoza_detalles.json")
             }
         },
         {
@@ -142,8 +175,7 @@ def download_all_contracts(destination_directory):
                 "file_path": "DESCARGAS/"
             }
         }
-    ]
-    
+    ]    
     # Descargar cada dataset
     for dataset in datasets:
         func = dataset["func"]
@@ -159,9 +191,18 @@ def main():
     args = parser.parse_args()
 
     if args.city == 'zaragoza':
+        # Configuraciones específicas para Zaragoza
         base_url = 'https://www.zaragoza.es/sede/servicio/contratacion-publica/contrato.json'
-        if args.file_path:
-            download_contracts_zaragoza(base_url, 0, 50, os.path.join(args.file_path, "contratos_menores_zaragoza.json"))
+        params = {
+            'procedimiento.id': '10',
+            'fl': 'id',
+            'start': 0,
+            'rows': 50
+        }
+        detail_base_url = 'https://www.zaragoza.es/sede/servicio/contratacion-publica'
+        file_path = os.path.join(args.file_path, "contratos_menores_zaragoza.json")
+        download_zaragoza_wrapper(base_url, params, detail_base_url, file_path)
+            
     elif args.city == 'madrid':
         start_url = 'https://transparencia.madrid.es/portales/transparencia/es/Economia-y-presupuestos/Contratacion/Contratacion-administrativa/Contratos-menores'
         if args.file_path:
