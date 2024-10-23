@@ -1151,7 +1151,10 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir):
     df_out_no_coincidentes = contratos_outsiders[indices_no_match]
     len(df_out_no_coincidentes)
     
-
+    df_outsiders_all = pd.concat([df_outsiders_combined, df_out_no_coincidentes], ignore_index=True)
+    print(f"Total de contratos outsiders integrados: {df_outsiders_all.shape[0]} filas.")
+    df_outsiders_all.to_parquet(output_path_outsiders, index=False)
+    
 
 def main():
     parser = argparse.ArgumentParser(description='Procesa y concatena datos de Zaragoza, Madrid y Gencat.')
