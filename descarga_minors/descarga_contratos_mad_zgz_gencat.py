@@ -20,22 +20,19 @@ def download_contracts_gencat(domain, dataset_identifier, destination_directory,
     while True:
         # Obtener un bloque de resultados usando el offset
         results = client.get(dataset_identifier, limit=limit, offset=offset)
-        
-        # Romper el bucle si no se obtienen más resultados
+
         if not results:
             break
         
-        # Convertir resultados a DataFrame y agregar a la lista combinada
+        # Covert results to a DataFrame
         df = pd.DataFrame.from_records(results)
         results_combined.append(df)
         
-        # Actualizar el número total de filas descargadas
+        # Update total rows count
         total_rows += len(results)
-        
-        # Mostrar progreso
         print(f"Descargadas {total_rows} filas hasta ahora...")
         
-        # Incrementar el offset para la siguiente solicitud
+        # Increment offset for the next iteration
         offset += limit
     
     # Combinar todos los DataFrames en uno solo
@@ -104,9 +101,9 @@ def download_contracts_zaragoza(contract_ids, detail_url_template, file_path):
     print(f"Detalles de los contratos descargados y guardados en {file_path}")
 
 def download_zaragoza_wrapper(base_url, params, detail_base_url, file_path):
-    # Obtener los IDs de los contratos primero
+    # Obtain the contract IDs first
     contract_ids = get_contract_ids(base_url, params)
-    # Luego descargar los detalles de los contratos
+    # Download the details of each contract
     download_contracts_zaragoza(contract_ids, detail_base_url, file_path)
     
 def download_contracts_madrid(url, destination_directory, start_year,file_path):
@@ -134,7 +131,7 @@ def download_contracts_madrid(url, destination_directory, start_year,file_path):
                     file_name = href.split('/')[-1]
                     # Download the file linked from the URL.
                     file_response = requests.get(full_url)
-                    file_response.raise_for_status()  # Ensure the download was successful.
+                    file_response.raise_for_status()  
                     file_path = os.path.join(destination_directory, file_name)
                     with open(file_path, 'wb') as file:
                         file.write(file_response.content)
@@ -207,11 +204,12 @@ def main():
         start_url = 'https://transparencia.madrid.es/portales/transparencia/es/Economia-y-presupuestos/Contratacion/Contratacion-administrativa/Contratos-menores'
         if args.file_path:
             download_contracts_madrid(start_url, args.file_path, args.start_year)
+    
     elif args.city == 'gencat':
         domain = "analisi.transparenciacatalunya.cat"
         dataset_identifier = "ybgg-dgi6"
         if args.file_path:
-            download_contracts_gencat(domain, dataset_identifier, args.file_path, "contratacion_publica_catalunya_completo.csv")
+            download_contracts_gencat(domain, dataset_identifier, args.file_path, "contratacion_publica_catalunya_completo1.csv")
     elif args.city == 'all':
         if args.file_path:
             download_all_contracts(args.file_path)

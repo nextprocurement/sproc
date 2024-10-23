@@ -1,6 +1,10 @@
 _docs/
 _proc/
 PlataformasAgregadasSinMenores_2018.zip
+Accuracy_RAG_tool.ipynb
+dspy_solution.ipynb
+dspy_solution-Copy1.ipynb
+
 
 *.bak
 .gitattributes
@@ -17,6 +21,10 @@ tags
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
+*.pyc
+__pycache__/
+sproc/__pycache__/
+sproc/__pycache__/__init__.cpython-310.pyc
 *.py[cod]
 *$py.class
 
@@ -158,7 +166,19 @@ data
 notebooks
 *.parquet
 
+# files
+descarga_minors/DUPLICADOS.xlsx
+descarga_minors/datos_outsiders_gencat_mezcla_codi_dir3_y_codi_organ_place.csv
+descarga_minors/estadisticas_df_gencat_json_outsiders_con_info.xlsx
+descarga_minors/estadisticas_df_gencat_json_todos_con_info.xlsx
+descarga_minors/failed_urls.csv
+descarga_minors/outsiders_no_match.csv
+descarga_minors/outsiders_no_match.csv.zip
+descarga_minors/stopwords.ipynb
+failed_urls.csv
+
 # folders
 minors_madrid/
 minors_zaragoza/
 DESCARGAS/
+
