@@ -23,10 +23,9 @@ tags
 __pycache__/
 *.pyc
 __pycache__/
-sproc/__pycache__/
-sproc/__pycache__/__init__.cpython-310.pyc
 *.py[cod]
 *$py.class
+app.log
 
 # C extensions
 *.so
@@ -109,8 +108,9 @@ celerybeat-schedule
 
 # virtualenv
 .venv
-venv/
-ENV/
+venv
+ENV
+descarga_minors/venv_opendata
 
 # Spyder project settings
 .spyderproject
@@ -176,6 +176,7 @@ descarga_minors/outsiders_no_match.csv
 descarga_minors/outsiders_no_match.csv.zip
 descarga_minors/stopwords.ipynb
 failed_urls.csv
+LinQAChecker-saved.json
 
 # folders
 minors_madrid/

@@ -19,6 +19,12 @@ pip install requests beautifulsoup4 pandas sodapy
 
 #### Ejemplos de Comandos
 
+El comando principal para ejecutar el script y descargar simultáneamente todos los datos es el siguiente:
+
+ python3 descarga_contratos_mad_zgz_gencat.py all --file_path /ruta/a/destino/descargas
+
+ También existe la opción de hacer la descarga de forma independiente para cada administración:
+ 
 - **Zaragoza** - Descargar contratos menores y guardarlos en un archivo JSON:
 
  python3 descarga_contratos_mad_zgz_gencat.py zaragoza --file_path /ruta/a contratos_menores_zaragoza.json
@@ -30,10 +36,6 @@ pip install requests beautifulsoup4 pandas sodapy
 - **Cataluña** - Descargar datos de contratación pública:
 
  python3 descarga_contratos_mad_zgz_gencat.py gencat --file_path /ruta/a/contratacion_publica_catalunya.csv
-
-El comando principal para ejecutar el script y descargar simultáneamente todos los datos es el siguiente:
-
- python3 descarga_contratos_mad_zgz_gencat.py all --file_path /ruta/a/destino/descargas
 
 ### Funcionamiento detallado
 
