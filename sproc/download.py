@@ -24,7 +24,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 def file(
     url: str, # URL for the file to be downloaded
     output_file: str | pathlib.Path | None, # Name of the local file to be saved; if `None` its content is returned
-    timeout: float = 2. # How long to wait for a response
+    timeout: float = 5. # How long to wait for a response
     ) -> None | bytes: # Content of the file or `None` if `output_file` was passed
     "Downloads a file"
 
@@ -57,7 +57,7 @@ def file(
 # %% ../nbs/80_download.ipynb 13
 def yaml_to_dict(
     url: str, # URL for the file to be downloaded
-    timeout: float = 2. # How long to wait for a response
+    timeout: float = 5. # How long to wait for a response
     ) -> dict: # YAML data
     "Read YAML data from an URL"
 

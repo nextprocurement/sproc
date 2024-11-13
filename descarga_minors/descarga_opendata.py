@@ -233,13 +233,13 @@ if __name__ == "__main__":
 
 ### Ejemplos de Uso
 #Descargar contratos menores de Zaragoza y guardarlos en un archivo JSON:
-#python3 script.py zaragoza --ruta_archivo /path/to/contratos_menores_zaragoza.json
+#python3 descarga_opendata.py zaragoza --ruta_archivo /path/to/contratos_menores_zaragoza.json
 
 # Descargar contratos menores de Zaragoza
-#python3 script.py zaragoza --file_path /path/to/contratos_menores_zaragoza.json
+#python3 descarga_opendata.py zaragoza --file_path /path/to/contratos_menores_zaragoza.json
 # Descargar contratos menores de Madrid desde 2018
-#python3 script.py madrid --start_year 2018 --file_path /path/to/contratos_menores_madrid
+#python3 descarga_opendata.py madrid --start_year 2018 --file_path /path/to/contratos_menores_madrid
 # Descargar datos de contratación pública de Cataluña
-#python3 script.py gencat --file_path /path/to/contratacion_publica_catalunya.csv
+#python3 descarga_opendata.py gencat --file_path /path/to/contratacion_publica_catalunya.csv
 # Descargar todos los conjuntos de datos
-#python3 script.py all --file_path /path/to/descargas
+#python3 descarga_opendata.py all --file_path /path/to/descargas

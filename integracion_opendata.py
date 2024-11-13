@@ -413,7 +413,7 @@ def process_zaragoza(df, df_minors):
     # Renombrar las columnas
     df_minors_zgz = df_filtered.rename(columns=mapeo_zgz)
     print(f"Hay un total de {len(df_minors_zgz)} menores de ZARAGOZA")
-    df_minors_zgz['id'] = 'zaragoza_opendata'
+    df_minors_zgz['origen'] = 'zaragoza_opendata'
     
     df_combined_minors_zgz = pd.concat([df_minors, df_minors_zgz], ignore_index=True)
 
@@ -611,9 +611,9 @@ def process_madrid(df_minors_base, input_dir):
     df_bloque2.drop(columns=['CONTRATO','SECCIÓN','F_INSCRIPCION'], inplace=True, errors='ignore')
     df_bloque3.drop(columns=['NºRECON','SECCION ', 'FECHA APROBACION', 'FCH.COMUNIC.REG'], inplace=True, errors='ignore')
 
-    df_bloque1['id'] = 'madrid_opendata'
-    df_bloque2['id'] = 'madrid_opendata'
-    df_bloque3['id'] = 'madrid_opendata'
+    df_bloque1['origen'] = 'madrid_opendata'
+    df_bloque2['origen'] = 'madrid_opendata'
+    df_bloque3['origen'] = 'madrid_opendata'
 
     # Concatenar todos los DataFrames
     dataframes = [df_bloque1, df_bloque2, df_bloque3]
@@ -1190,14 +1190,15 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir):
     df_menores_ren['ContractFolderStatus.TenderingProcess.UrgencyCode'] = df_menores_ren['ContractFolderStatus.TenderingProcess.UrgencyCode'].apply(replace_procedure_code)
     #import pdb; pdb.set_trace()
     
-    df_menores_ren['id'] = 'minors_gencat_opendata'
-    df_menores_ren['id'] = df_menores_ren['id'].apply(convert_to_object_array)
+    df_menores_ren['origen'] = 'minors_gencat_opendata'
 
     logging.info(f"Las cols de place de contratos menores son: {df_minors_base.columns.tolist()}")
     # Combinar con df_minors_base
     # Aqui esta vacío df_minors_base, pero debería ser el df de minors
     df_minors_combined = pd.concat([df_minors_base, df_menores_ren], ignore_index=True)
     logging.info(f"Total de contratos menores después de combinar: {df_minors_combined.shape[0]} filas.")
+    
+    df_menores_ren['origen'] = df_menores_ren['origen'].apply(convert_to_object_array)
     
     # Unificar tipos de datos para guardar como parquet
     df_minors_combined['ContractFolderStatus.LocatedContractingParty.Party.PartyIdentification.ID'] = \
@@ -1397,9 +1398,9 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir):
     df_outsiders_all['ContractFolderStatus.TenderingTerms.FundingProgramCode']= \
         df_outsiders_all['ContractFolderStatus.TenderingTerms.FundingProgramCode'].apply(convert_to_object_array)
         
-    df_outsiders_all['id'] = 'outsiders_gencat_opendata'
+    df_outsiders_all['origen'] = 'outsiders_gencat_opendata'
     
-    df_outsiders_all['id'] = df_outsiders_all['id'].apply(convert_to_object_array)
+    df_outsiders_all['origen'] = df_outsiders_all['origen'].apply(convert_to_object_array)
 
     #import pdb; pdb.set_trace()
     df_outsiders_all.drop(columns=cols_drop, inplace=True, errors='ignore')
