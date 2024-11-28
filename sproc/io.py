@@ -78,7 +78,9 @@ def cast_list_to_floats_or_strs(l: # Input
     "Homogenizes the elements in a list such that they are all either `float` or `str`"
     
     # *scalar* Pandas' `pd.NA` are turned into Numpy's `np.nan`
-    l = [np.NAN if (type(e) != list) and (pd.isna(e)) else e for e in l]
+    #l = [np.NAN if (type(e) != list) and (pd.isna(e)) else e for e in l] DEPRECATED VERSION OF NUMPY NAN (Updated 14/11/2024)-> np.nan
+    l = [np.nan if (type(e) != list) and (pd.isna(e)) else e for e in l]
+
     
     try:
         return [float(e) for e in l]

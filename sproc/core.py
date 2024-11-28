@@ -329,6 +329,7 @@ def dl(
     
     # Define las columnas objetivo
     columna_objetivo = (
+        'ContractFolderStatus.ContractFolderID',
         'ContractFolderStatus.TenderingTerms.FundingProgram',
         'ContractFolderStatus.TenderingTerms.ProcurementNationalLegislationCode'
     )    
@@ -339,6 +340,10 @@ def dl(
                 parquet_df[col_original] = parquet_df[col_original].astype('string')           
         else:
             print(f"La columna '{col_obj}' no se está en el DataFrame. Pero la descarga se ha completado correctamente")
+    
+    #import pdb; pdb.set_trace()
+    
+    print(parquet_df.columns)
     # parquet_df.to_parquet(output_file.with_stem('new'))
     parquet_df.to_parquet(output_file)
 

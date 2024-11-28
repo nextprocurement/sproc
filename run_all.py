@@ -1,9 +1,12 @@
 from sproc.core import dl, cli_read_single_zip, cli_rename_columns, read_zips, cli_extend_parquet_with_zip
-
 import argparse
 import pathlib
 import sys
 import yaml
+
+# Script to run the different actions of the sproc package
+# It is recommended to run this script from the command line with the following command:
+# python3 run_all.py --contract_type outsiders --save_path /path/to/save/place/data 
 
 def main():
     parser = argparse.ArgumentParser(description="sproc")

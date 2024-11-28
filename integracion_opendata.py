@@ -413,6 +413,9 @@ def process_zaragoza(df, df_minors):
     # Renombrar las columnas
     df_minors_zgz = df_filtered.rename(columns=mapeo_zgz)
     print(f"Hay un total de {len(df_minors_zgz)} menores de ZARAGOZA")
+    if 'origen' not in df_minors.columns:
+        df_minors['origen'] = 'minors_place'
+    
     df_minors_zgz['origen'] = 'zaragoza_opendata'
     
     df_combined_minors_zgz = pd.concat([df_minors, df_minors_zgz], ignore_index=True)
@@ -501,8 +504,11 @@ def convertir_timestamp_a_array(timestamp):
 
 def eliminar_corchetes(cadena):
     if isinstance(cadena, str):
-        # Eliminar todos los corchetes
-        return re.sub(r'[\[\]]', '', cadena).strip("'").strip('"')
+        # Eliminar corchetes, comillas simples y dobles
+        cadena = re.sub(r"[\[\]']", '', cadena)
+        cadena = cadena.strip('"')  
+        # Eliminar el sufijo ".0"
+        cadena = re.sub(r'\b(\d+)\.0\b', r'\1', cadena)
     return cadena
 
 
@@ -614,7 +620,10 @@ def process_madrid(df_minors_base, input_dir):
     df_bloque1['origen'] = 'madrid_opendata'
     df_bloque2['origen'] = 'madrid_opendata'
     df_bloque3['origen'] = 'madrid_opendata'
-
+    
+    if 'origen' not in df_minors_base.columns:
+        df_minors_base['origen'] = 'minors_place'
+    
     # Concatenar todos los DataFrames
     dataframes = [df_bloque1, df_bloque2, df_bloque3]
     df_concatenado = df_minors_base.copy().reset_index(drop=True)
@@ -622,7 +631,7 @@ def process_madrid(df_minors_base, input_dir):
     for df in dataframes:
         df.reset_index(drop=True, inplace=True) 
         df_concatenado = pd.concat([df_concatenado, df], ignore_index=True)
-    
+        
     df_concatenado['ContractFolderStatus.ProcurementProject.BudgetAmount.TotalAmount'] = df_concatenado['ContractFolderStatus.ProcurementProject.BudgetAmount.TotalAmount'].astype(str)
     df_concatenado['ContractFolderStatus.ProcurementProject.BudgetAmount.TotalAmount'] = df_concatenado['ContractFolderStatus.ProcurementProject.BudgetAmount.TotalAmount'].apply(eliminar_corchetes)
     df_concatenado['ContractFolderStatus.ProcurementProject.BudgetAmount.TotalAmount'] = df_concatenado['ContractFolderStatus.ProcurementProject.BudgetAmount.TotalAmount'].apply(convert_to_object_array)
@@ -645,7 +654,7 @@ def process_madrid(df_minors_base, input_dir):
             df_concatenado[col] = df_concatenado[col].apply(convert_to_object_array)
         
     #Guardado intermedio, luego comentar en versión final
-    df_concatenado.to_parquet('/export/usuarios_ml4ds/cggamella/sproc/DESCARGAS/zgz_y_madrid.parquet')
+    #df_concatenado.to_parquet('/export/usuarios_ml4ds/cggamella/sproc/DESCARGAS/zgz_y_madrid.parquet')
             
     return df_concatenado
         
@@ -957,8 +966,8 @@ def procesar_datos_json(df_input, max_retries=3, delay_seconds=2):
             print(f"Error al evaluar la cadena JSON en el índice {index}: {e}")
             df.loc[index, 'url_json_licitacio'] = 'Error al evaluar JSON'
     
-    df_failed = pd.DataFrame(failed_urls)
-    df_failed.to_csv('failed_urls.csv', index=False)
+    #df_failed = pd.DataFrame(failed_urls)
+    #df_failed.to_csv('failed_urls.csv', index=False)
     
     return df
 
@@ -972,6 +981,13 @@ def agrupar_dataframe(df, cols_to_group):
 
     return df_resultado
 
+# For the format of cpv codes
+def reemplazar_doble_barra_por_coma(s):
+    if isinstance(s, str) and '||' in s:
+        return s.replace('||', ',')
+    else:
+        return s
+    
 mapeo_gencat_mejora_outsiders = {
     'enllac_publicacio': 'link',
     'codi_expedient': 'ContractFolderStatus.ContractFolderID',
@@ -1091,7 +1107,6 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir):
     # Aplicar la función para agrupar el DataFrame tarda 9 mins
     logging.info("Agrupando el DataFrame de Gencat...")
     df_resultado = agrupar_dataframe(df_gencat, cols_to_group)
-    
     # Eliminar duplicados en 'indice_unico' ya tengo la información agrupada
     df_resultado.drop_duplicates(subset=['indice_unico'], keep='first', inplace=True)
     
@@ -1104,7 +1119,6 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir):
     logging.info(f"La función procesar_datos_json tarda {elapsed_time/60} mins en ejecutarse.")
     
     #df_gencat_json = df_resultado.copy() #Pruebas para no esperar a que extraiga info json
-    #import pdb; pdb.set_trace()
 
     # SEPARAR LÓGICA DE MINORS Y OUTSIDERS
     contratos_menores = df_gencat_json[df_gencat_json['procediment'] == 'Contracte menor'].copy()
@@ -1112,9 +1126,10 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir):
     logging.info(f"Total de filas en Gencat: {df_gencat_json.shape[0]}")
     logging.info(f"Contratos menores opendata: {contratos_menores.shape[0]} filas.")
     logging.info(f"Contratos outsiders opendata: {contratos_outsiders.shape[0]} filas.")
-    #import pdb; pdb.set_trace()
-    
-    # Procesamiento de contratos menores
+        
+    # -----------------------------------------------------------------------------------
+    # PROCESAMIENTO DE CONTRATOS MENORES
+    # -----------------------------------------------------------------------------------
     logging.info("Procesando contratos menores de Gencat...")
     # Definir el mapeo de columnas para contratos menores
     mapeo_gencat = {
@@ -1146,7 +1161,6 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir):
 
     # Renombrar columnas según el mapeo
     df_menores_ren = contratos_menores.rename(columns=mapeo_gencat)
-
     # Eliminar columnas innecesarias
     columns_to_drop = [
         'codi_ambit', 'nom_ambit', 'codi_organ', 'url_json_formalitzacio',
@@ -1167,11 +1181,9 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir):
         'import_adjudicacio_amb_iva', 'codi_unitat', 'nom_unitat',
         'data_publicacio_adjudicacio', 'url_json_adjudicacio'
     ]
-    
     logging.info(f"Las columnas de gencat menores con rename son: {df_menores_ren.columns.tolist()}")
     df_menores_ren.drop(columns=columns_to_drop, inplace=True, errors='ignore')
 
-    df_menores_ren['link'] = df_menores_ren.apply(extraer_url, axis=1)
     df_menores_ren['ContractFolderStatus.ProcurementProject.PlannedPeriod.DurationMeasure'] = df_menores_ren['ContractFolderStatus.ProcurementProject.PlannedPeriod.DurationMeasure'].apply(
         lambda x: analyze_duration(x) if isinstance(x, str) else x
     )
@@ -1188,19 +1200,47 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir):
         return procedimiento_codigos.get(value, value)
     
     df_menores_ren['ContractFolderStatus.TenderingProcess.UrgencyCode'] = df_menores_ren['ContractFolderStatus.TenderingProcess.UrgencyCode'].apply(replace_procedure_code)
-    #import pdb; pdb.set_trace()
+    df_menores_ren['link'] = df_menores_ren.apply(extraer_url, axis=1)
     
     df_menores_ren['origen'] = 'minors_gencat_opendata'
-
+    if 'origen' not in df_minors_base.columns:
+        df_minors_base['origen'] = 'minors_place'
+    
     logging.info(f"Las cols de place de contratos menores son: {df_minors_base.columns.tolist()}")
     # Combinar con df_minors_base
-    # Aqui esta vacío df_minors_base, pero debería ser el df de minors
     df_minors_combined = pd.concat([df_minors_base, df_menores_ren], ignore_index=True)
     logging.info(f"Total de contratos menores después de combinar: {df_minors_combined.shape[0]} filas.")
-    
-    df_menores_ren['origen'] = df_menores_ren['origen'].apply(convert_to_object_array)
-    
+
     # Unificar tipos de datos para guardar como parquet
+    df_minors_combined['link'] = df_minors_combined.apply(extraer_url, axis=1)
+    df_minors_combined['link'] = df_minors_combined['link'].apply(convert_to_object_array)
+    df_minors_combined['title'] = df_minors_combined['title'].apply(convert_to_object_array)
+    df_minors_combined['ContractFolderStatus.ContractFolderID'] = \
+        df_minors_combined['ContractFolderStatus.ContractFolderID'].apply(convert_to_object_array)
+    df_minors_combined['ContractFolderStatus.LocatedContractingParty.Party.PartyName.Name'] = \
+        df_minors_combined['ContractFolderStatus.LocatedContractingParty.Party.PartyName.Name'].apply(convert_to_object_array)
+    df_minors_combined['ContractFolderStatus.ProcurementProject.PlannedPeriod.DurationMeasure'] = df_minors_combined['ContractFolderStatus.ProcurementProject.PlannedPeriod.DurationMeasure'].astype(str)
+    df_minors_combined['ContractFolderStatus.ProcurementProject.PlannedPeriod.DurationMeasure'] = df_minors_combined['ContractFolderStatus.ProcurementProject.PlannedPeriod.DurationMeasure'].apply(eliminar_corchetes)
+    df_minors_combined['ContractFolderStatus.ProcurementProject.PlannedPeriod.DurationMeasure'] = df_minors_combined['ContractFolderStatus.ProcurementProject.PlannedPeriod.DurationMeasure'].apply(convert_to_object_array)
+    df_minors_combined['ContractFolderStatus.TenderingProcess.UrgencyCode'] = df_minors_combined['ContractFolderStatus.TenderingProcess.UrgencyCode'].astype(str)
+    df_minors_combined['ContractFolderStatus.TenderingProcess.UrgencyCode'] = df_minors_combined['ContractFolderStatus.TenderingProcess.UrgencyCode'].apply(eliminar_corchetes)
+    df_minors_combined['ContractFolderStatus.TenderingProcess.UrgencyCode'] = df_minors_combined['ContractFolderStatus.TenderingProcess.UrgencyCode'].apply(convert_to_object_array)
+    
+    df_minors_combined['ContractFolderStatus.LegalDocumentReference.ID'] = df_minors_combined['ContractFolderStatus.LegalDocumentReference.ID'].astype(str)
+    df_minors_combined['ContractFolderStatus.LegalDocumentReference.ID'] = df_minors_combined['ContractFolderStatus.LegalDocumentReference.ID'].apply(eliminar_corchetes)
+    df_minors_combined['ContractFolderStatus.LegalDocumentReference.ID'] = df_minors_combined['ContractFolderStatus.LegalDocumentReference.ID'].apply(convert_to_object_array)
+    
+    df_minors_combined['ContractFolderStatus.LegalDocumentReference.Attachment.ExternalReference.URI'] = df_minors_combined['ContractFolderStatus.LegalDocumentReference.Attachment.ExternalReference.URI'].astype(str)
+    df_minors_combined['ContractFolderStatus.LegalDocumentReference.Attachment.ExternalReference.URI'] = df_minors_combined['ContractFolderStatus.LegalDocumentReference.Attachment.ExternalReference.URI'].apply(eliminar_corchetes)
+    df_minors_combined['ContractFolderStatus.LegalDocumentReference.Attachment.ExternalReference.URI'] = df_minors_combined['ContractFolderStatus.LegalDocumentReference.Attachment.ExternalReference.URI'].apply(convert_to_object_array)
+    
+    df_minors_combined['ContractFolderStatus.TechnicalDocumentReference.ID'] = df_minors_combined['ContractFolderStatus.TechnicalDocumentReference.ID'].apply(convert_to_object_array)
+    
+    df_minors_combined['ContractFolderStatus.TechnicalDocumentReference.Attachment.ExternalReference.URI'] = df_minors_combined['ContractFolderStatus.TechnicalDocumentReference.Attachment.ExternalReference.URI'].apply(convert_to_object_array)
+    
+    df_minors_combined['ContractFolderStatus.TenderingProcess.TenderSubmissionDeadlinePeriod.EndDate'] = \
+        df_minors_combined['ContractFolderStatus.TenderingProcess.TenderSubmissionDeadlinePeriod.EndDate'].apply(convert_to_object_array)
+      
     df_minors_combined['ContractFolderStatus.LocatedContractingParty.Party.PartyIdentification.ID'] = \
         df_minors_combined['ContractFolderStatus.LocatedContractingParty.Party.PartyIdentification.ID'].apply(convert_to_object_array)
 
@@ -1231,6 +1271,12 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir):
     df_minors_combined['ContractFolderStatus.TenderingProcess.ProcedureCode'] = \
         df_minors_combined['ContractFolderStatus.TenderingProcess.ProcedureCode'].apply(convert_to_object_array)
 
+    df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ID'] = \
+        df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ID'].astype(str)
+    df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ID'] = df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ID'].apply(eliminar_corchetes)
+    df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ID'] = \
+        df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ID'].apply(convert_to_object_array)
+
     df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ProcurementProject.RequiredCommodityClassification.ItemClassificationCode'] = \
         df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ProcurementProject.RequiredCommodityClassification.ItemClassificationCode'].apply(convert_to_object_array)
 
@@ -1240,44 +1286,36 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir):
     df_minors_combined['ContractFolderStatus.TenderingTerms.FundingProgramCode']= \
         df_minors_combined['ContractFolderStatus.TenderingTerms.FundingProgramCode'].apply(convert_to_object_array)
 
-    df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ID'] = \
-        df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ID'].apply(convert_to_object_array)
-    df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ID'] = \
-        df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ID'].apply(convert_to_ndarray)
-
     df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ProcurementProject.BudgetAmount.TaxExclusiveAmount'] = \
-        df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ProcurementProject.BudgetAmount.TaxExclusiveAmount'].apply(convert_to_ndarray)
+        df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ProcurementProject.BudgetAmount.TaxExclusiveAmount'].astype(str)
+    df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ProcurementProject.BudgetAmount.TaxExclusiveAmount']= df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ProcurementProject.BudgetAmount.TaxExclusiveAmount'].apply(eliminar_corchetes)
+    df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ProcurementProject.BudgetAmount.TaxExclusiveAmount'] = \
+        df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ProcurementProject.BudgetAmount.TaxExclusiveAmount'].apply(convert_to_object_array)
 
-    df_minors_combined['ContractFolderStatus.TenderResult.AwardedTenderedProject.LegalMonetaryTotal.TaxExclusiveAmount'] = \
-        df_minors_combined['ContractFolderStatus.TenderResult.AwardedTenderedProject.LegalMonetaryTotal.TaxExclusiveAmount'].apply(convert_to_ndarray)
-
-    df_minors_combined['ContractFolderStatus.LocatedContractingParty.Party.PartyIdentification.ID'] = \
-        df_minors_combined['ContractFolderStatus.LocatedContractingParty.Party.PartyIdentification.ID'].apply(convert_to_object_array)
-
-    df_minors_combined['ContractFolderStatus.TenderResult.WinningParty.PartyIdentification.IDschemeName'] = \
-        df_minors_combined['ContractFolderStatus.TenderResult.WinningParty.PartyIdentification.IDschemeName'].apply(convert_to_object_array)
-    
-    logging.info("Guardando datos de contratos MENORES procesados...")
-    # Guardar el DataFrame de contratos menores procesados
-    output_path_minors = os.path.join(input_dir, 'processed_gencat_minors.parquet')
-    df_minors_combined.to_parquet(output_path_minors, index=False)
-    logging.info(f"Datos de contratos menores de Gencat procesados y guardados en {output_path_minors}")
     #import pdb; pdb.set_trace()
+    logging.info("Guardando datos de contratos MENORES procesados...")
+    output_path_minors = os.path.join(input_dir, 'minors_completo.parquet')
+    df_minors_combined.to_parquet(output_path_minors, index=False)
+    #logging.info(f"Datos de contratos menores de Gencat procesados y guardados en {output_path_minors}")
 
-    # Procesamiento de contratos OUTSIDERS XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    # -----------------------------------------------------------------------------------
+    # PROCESAMIENTO DE CONTRATOS OUTSIDERS 
+    # -----------------------------------------------------------------------------------
     logging.info("Procesando contratos outsiders de Gencat...")
-    print("*"*75)
     df_outsiders_base['indice_unico'] = df_outsiders_base.apply(crear_indice_unico, axis=1)
     df_outsiders_base['indice_unico'] = df_outsiders_base['indice_unico'].str.lower()
-    #import pdb; pdb.set_trace()
-
+    
     #direct_col_to_keep = df_outsiders_base.columns.tolist() # Guardar todos los datos de outsiders
     df_coincidencias_outsiders = pd.merge(df_outsiders_base, df_gencat_json, on='indice_unico', how='inner')
     logging.info(f"El total de coincidencias es: {len(df_coincidencias_outsiders)}")
     logging.info(f"El total de contratos outsiders en place es: {len(contratos_outsiders)}")
-    #import pdb; pdb.set_trace()
     
-    # Completando los datos de contratos outsiders con la información de Gencat
+    # Obtener los 'indice_unico' de las filas que han sido enriquecidas
+    indices_a_eliminar = df_coincidencias_outsiders['indice_unico'].unique()
+    # Eliminar de df_outsiders_base las filas que ya han sido enriquecidas
+    df_outsiders_base = df_outsiders_base[~df_outsiders_base['indice_unico'].isin(indices_a_eliminar)]
+    
+    # Mejorando los datos de contratos outsiders con la información de Gencat
     logging.info("Completando los datos de contratos outsiders con la información de Gencat...")
     df_out_sustituido = reemplazar_valores_vacios(df_coincidencias_outsiders, mapeo_gencat_mejora_outsiders)
     df_out_sustituido['ContractFolderStatus.TenderingProcess.UrgencyCode'] = df_out_sustituido['ContractFolderStatus.TenderingProcess.UrgencyCode'].apply(replace_procedure_code)
@@ -1307,26 +1345,38 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir):
         'pressupost_licitacio_sense',
         'descripcio_lot',
         'tipus_financament',
-        'tipus_empresa'  
+        'tipus_empresa',
+        'ContractFolderStatus.LegalDocumentReference.ID_x',
+        'ContractFolderStatus.LegalDocumentReference.Attachment.ExternalReference.URI_x',
+        'ContractFolderStatus.TechnicalDocumentReference.ID_x',
+        'ContractFolderStatus.TechnicalDocumentReference.Attachment.ExternalReference.URI_x',
+        'ContractFolderStatus.LegalDocumentReference.ID_y',
+        'ContractFolderStatus.LegalDocumentReference.Attachment.ExternalReference.URI_y',
+        'ContractFolderStatus.TechnicalDocumentReference.ID_y',
+        'ContractFolderStatus.TechnicalDocumentReference.Attachment.ExternalReference.URI_y'   
     ]
     # Quedarme columas de PLACE con la info ya enriquecida de Gencat, para eliminar cols de gencat
     #columns_to_keep = [col for col in columns_keep if col in df_out_sustituido.columns]
     cols_drop = columns_to_drop + cols_drop_extra
     df_out_sustituido.drop(columns=cols_drop, inplace=True, errors='ignore')
-
     logging.info(f"Las cols enriquecidas(gencat) de outsiders listas para concat: {df_out_sustituido.columns}")
-    #import pdb; pdb.set_trace()
-
-    ## REVISAR ESTO LOS INDICES PARA CONCATENAR
+    
     # Combinar con df_outsiders_base 
-    df_outsiders_base = df_outsiders_base.reset_index(drop=True)
-    df_out_sustituido = df_out_sustituido.reset_index(drop=True)
+    for df in [df_outsiders_base, df_out_sustituido]:
+        df.reset_index(drop=True, inplace=True)
+        
+    # Para conservar el origen de los datos
+    if 'origen' not in df_outsiders_base.columns:
+        df_outsiders_base['origen'] = 'outsiders_place'
+        
+    df_out_sustituido['origen'] = 'outsiders_place_enrichment_gencat'
+    
+        
     logging.info(f"Las columnas en df_outsiders_base son: {df_outsiders_base.columns.tolist()}")
     logging.info(f"Las columnas en df_out_sustituido son: {df_out_sustituido.columns.tolist()}")
     df_outsiders_combined = pd.concat([df_outsiders_base, df_out_sustituido], ignore_index=True)
     logging.info(f"Añadir contratos outsiders enriquecidos (coincidentes): {df_outsiders_combined.shape[0]} filas.")
-    #import pdb; pdb.set_trace()
-    
+        
     df_outsiders_combined['ContractFolderStatus.TenderingProcess.ProcedureCode'] = \
         df_outsiders_combined['ContractFolderStatus.TenderingProcess.ProcedureCode'].apply(substitute_contract_value)
     df_outsiders_combined['ContractFolderStatus.TenderingProcess.ProcedureCode'] = \
@@ -1335,20 +1385,19 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir):
         df_outsiders_combined['ContractFolderStatus.TenderingProcess.ProcedureCode'].apply(convert_to_object_array)
         
     logging.info(f"Las COLUMAS SON: {df_outsiders_combined.columns.tolist()}")
-    #import pdb; pdb.set_trace()
     
     # Guardar el DataFrame de contratos outsiders procesados
-    output_path_outsiders = os.path.join(input_dir, 'processed_gencat_outsiders_enriquecidos.parquet')
-    df_outsiders_combined.to_parquet(output_path_outsiders, index=False)
-    logging.info(f"Datos de contratos outsiders enriquecidos Gencat procesados y guardados en {output_path_outsiders}")
-    #import pdb; pdb.set_trace()
+    #output_path_outsiders = os.path.join(input_dir, 'processed_gencat_outsiders_enriquecidos.parquet')
+    #df_outsiders_combined.to_parquet(output_path_outsiders, index=False)
+    #logging.info(f"Datos de contratos outsiders enriquecidos Gencat procesados y guardados en {output_path_outsiders}")
     
     logging.info("Integrando contratos outsiders no coincidentes...")
     # Filtrar los contratos outsiders que no matchean
     indices_no_match = ~contratos_outsiders['indice_unico'].isin(df_coincidencias_outsiders['indice_unico'])
     df_out_no_coincidentes = contratos_outsiders[indices_no_match]
     df_out_no_coincidentes = df_out_no_coincidentes.rename(columns=mapeo_gencat)
-    #import pdb; pdb.set_trace()
+    
+    df_out_no_coincidentes['origen'] = 'outsiders_gencat_opendata_no_match_place'    
     
     df_outsiders_all = pd.concat([df_outsiders_combined, df_out_no_coincidentes], ignore_index=True)
     print(f"Total de contratos outsiders integrados: {df_outsiders_all.shape[0]} filas.")
@@ -1368,9 +1417,10 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir):
         df_outsiders_all['ContractFolderStatus.ProcurementProject.TypeCode'].apply(convert_to_object_array)
 
     df_outsiders_all['ContractFolderStatus.ProcurementProjectLot.ID'] = \
-        df_outsiders_all['ContractFolderStatus.ProcurementProjectLot.ID'].apply(convert_to_object_array)
+        df_outsiders_all['ContractFolderStatus.ProcurementProjectLot.ID'].astype(str)
+    df_outsiders_all['ContractFolderStatus.ProcurementProjectLot.ID'] = df_outsiders_all['ContractFolderStatus.ProcurementProjectLot.ID'].apply(eliminar_corchetes)
     df_outsiders_all['ContractFolderStatus.ProcurementProjectLot.ID'] = \
-        df_outsiders_all['ContractFolderStatus.ProcurementProjectLot.ID'].apply(convert_to_ndarray)
+        df_outsiders_all['ContractFolderStatus.ProcurementProjectLot.ID'].apply(convert_to_object_array)
         
     df_outsiders_all['link'] = df_outsiders_all.apply(extraer_url, axis=1)
     
@@ -1397,16 +1447,36 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir):
     
     df_outsiders_all['ContractFolderStatus.TenderingTerms.FundingProgramCode']= \
         df_outsiders_all['ContractFolderStatus.TenderingTerms.FundingProgramCode'].apply(convert_to_object_array)
-        
-    df_outsiders_all['origen'] = 'outsiders_gencat_opendata'
-    
-    df_outsiders_all['origen'] = df_outsiders_all['origen'].apply(convert_to_object_array)
 
+    df_outsiders_all['ContractFolderStatus.ProcurementProjectLot.ProcurementProject.RequiredCommodityClassification.ItemClassificationCode'] = \
+        df_outsiders_all['ContractFolderStatus.ProcurementProjectLot.ProcurementProject.RequiredCommodityClassification.ItemClassificationCode'].apply(reemplazar_doble_barra_por_coma)
+        
+    df_outsiders_all['ContractFolderStatus.TenderResult.ReceivedTenderQuantity'] = \
+        df_outsiders_all['ContractFolderStatus.TenderResult.ReceivedTenderQuantity'].astype(str)
+    df_outsiders_all['ContractFolderStatus.TenderResult.ReceivedTenderQuantity'] = \
+        df_outsiders_all['ContractFolderStatus.TenderResult.ReceivedTenderQuantity'].apply(eliminar_corchetes)
+    df_outsiders_all['ContractFolderStatus.TenderResult.ReceivedTenderQuantity'] = \
+        df_outsiders_all['ContractFolderStatus.TenderResult.ReceivedTenderQuantity'].apply(convert_to_object_array)
+    
+    df_outsiders_all['ContractFolderStatus.TenderResult.AwardedTenderedProject.LegalMonetaryTotal.TaxExclusiveAmount'] = \
+        df_outsiders_all['ContractFolderStatus.TenderResult.AwardedTenderedProject.LegalMonetaryTotal.TaxExclusiveAmount'].astype(str)
+    df_outsiders_all['ContractFolderStatus.TenderResult.AwardedTenderedProject.LegalMonetaryTotal.TaxExclusiveAmount'] = \
+        df_outsiders_all['ContractFolderStatus.TenderResult.AwardedTenderedProject.LegalMonetaryTotal.TaxExclusiveAmount'].apply(eliminar_corchetes)
+    df_outsiders_all['ContractFolderStatus.TenderResult.AwardedTenderedProject.LegalMonetaryTotal.TaxExclusiveAmount'] = \
+        df_outsiders_all['ContractFolderStatus.TenderResult.AwardedTenderedProject.LegalMonetaryTotal.TaxExclusiveAmount'].apply(convert_to_object_array)
+        
+    df_outsiders_all['ContractFolderStatus.TenderingProcess.ProcedureCode'] = \
+        df_outsiders_all['ContractFolderStatus.TenderingProcess.ProcedureCode'].astype(str)
+    df_outsiders_all['ContractFolderStatus.TenderingProcess.ProcedureCode'] = \
+        df_outsiders_all['ContractFolderStatus.TenderingProcess.ProcedureCode'].apply(eliminar_corchetes)
+    df_outsiders_all['ContractFolderStatus.TenderingProcess.ProcedureCode'] = \
+        df_outsiders_all['ContractFolderStatus.TenderingProcess.ProcedureCode'].apply(convert_to_object_array)
+    
     #import pdb; pdb.set_trace()
     df_outsiders_all.drop(columns=cols_drop, inplace=True, errors='ignore')
 
     # Guardar solo las columnas que se usarán
-    output_path_final = os.path.join(input_dir, 'processed_gencat_outsiders_completo.parquet')
+    output_path_final = os.path.join(input_dir, 'outsiders_completo.parquet')
     df_outsiders_all.to_parquet(output_path_final, index=False)
     
       
@@ -1429,14 +1499,13 @@ def main():
     minors_path = os.path.join(place_dir, 'minors.parquet')
     outsiders_path = os.path.join(place_dir, 'outsiders.parquet')
     
-    # Aplanar multiíndices de los dataframes
+    # Cargar datos PLACE y aplanar multiíndices de los dataframes
     if os.path.exists(minors_path):
         df_minors = pd.read_parquet(minors_path)
         df_minors.columns = [unify_colname(col) for col in df_minors.columns]
         print(f"Datos de minors cargados desde {minors_path}")
     else:
         print(f"No se encontró el archivo {minors_path}")
-
     if os.path.exists(outsiders_path):
         df_out = pd.read_parquet(outsiders_path)
         df_out.columns = [unify_colname(col) for col in df_out.columns]
@@ -1448,16 +1517,32 @@ def main():
         # Integrar datos de Zaragoza con minors
         logging.info("Comenzando el procesamiento e integración de datos de Zaragoza...")
         zaragoza_file = os.path.join(input_dir, 'contratos_menores_zaragoza.json')
-        if os.path.exists(zaragoza_file):
-            df_zaragoza = pd.read_json(zaragoza_file, orient='records')
-            df_minors_base = process_zaragoza(df_zaragoza, df_minors)
-            # Guardar los datos procesados
-            output_path = os.path.join(input_dir, 'processed_zaragoza.parquet')
-            #df_minors_base.to_parquet(output_path)
-            logging.info(f"Datos de Zaragoza procesados y guardados en {output_path}")
+        if administration == 'all':
+            if os.path.exists(zaragoza_file):
+                df_zaragoza = pd.read_json(zaragoza_file, orient='records')
+                df_minors_base = process_zaragoza(df_zaragoza, df_minors)
+                # Guardar los datos procesados
+                output_path = os.path.join(input_dir, 'processed_zaragoza.parquet')
+                df_minors_base.to_parquet(output_path)
+                logging.info(f"Datos de Zaragoza procesados y guardados en {output_path}")
+            else:
+                df_minors_base = df_minors.copy().reset_index(drop=True)
+                logging.info("No se encontraron datos de Zaragoza en la carpeta de opendata.")
+        elif administration == 'zaragoza':
+            if os.path.exists(zaragoza_file):
+                df_minors_base = df_minors.copy().reset_index(drop=True)
+                df_zaragoza = pd.read_json(zaragoza_file, orient='records')
+                df_minors_base = process_zaragoza(df_zaragoza, df_minors_base)
+                # Guardar los datos procesados
+                output_path = os.path.join(input_dir, 'processed_zaragoza.parquet')
+                #df_minors_base.to_parquet(output_path)
+                logging.info(f"Datos de Zaragoza procesados y guardados en {output_path}")
+            else:
+                df_minors_base = df_minors.copy().reset_index(drop=True)
+                logging.info("No se encontraron datos de Zaragoza en la carpeta de opendata.")
         else:
-            df_minors_base = df_minors.copy().reset_index(drop=True)
-            logging.info("No se procesarán datos de Zaragoza.")
+            logging.info("NO HAY DATOS DE ZARAGOZA.")
+            
     
     if administration in ['madrid', 'all']:
         logging.info("Comenzando el procesamiento e integración de datos de Madrid...")
@@ -1467,23 +1552,26 @@ def main():
             output_path = os.path.join(input_dir, 'processed_madrid.parquet')
             df_minors_base.to_parquet(output_path)
             logging.info("Datos de Madrid guardados.")
-        else:
-            print("No debe entrar si es all")
+        elif administration == 'madrid':
             df_minors_base = df_minors.copy()
             df_minors_solo_madrid = process_madrid(df_minors_base, input_dir)
             # Guardar los datos procesados
             output_path = os.path.join(input_dir, 'processed_solo_madrid.parquet')
             df_minors_solo_madrid.to_parquet(output_path)
             logging.info("Datos de Madrid guardados.")
+        else:
+            logging.info("NO HAY DATOS DE MADRID.")
 
     if administration in ['gencat', 'all']:
         logging.info("Comenzando el procesamiento e integración de datos de Gencat...")
         if administration == 'all':
             process_gencat(df_minors_base, df_out, input_dir)
-        else:
+        elif administration == 'gencat':
             logging.info("Solo se procesarán e integrarán los datos de Gencat...")
             df_minors_base = df_minors.copy()
             process_gencat(df_minors_base, df_out, input_dir)
+        else:
+            logging.info("NO HAY DATOS DE GENCAT.")
         
 
 if __name__ == '__main__':
