@@ -1206,6 +1206,7 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir):
     if 'origen' not in df_minors_base.columns:
         df_minors_base['origen'] = 'minors_place'
     
+    #import pdb; pdb.set_trace()
     logging.info(f"Las cols de place de contratos menores son: {df_minors_base.columns.tolist()}")
     # Combinar con df_minors_base
     df_minors_combined = pd.concat([df_minors_base, df_menores_ren], ignore_index=True)
@@ -1291,6 +1292,8 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir):
     df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ProcurementProject.BudgetAmount.TaxExclusiveAmount']= df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ProcurementProject.BudgetAmount.TaxExclusiveAmount'].apply(eliminar_corchetes)
     df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ProcurementProject.BudgetAmount.TaxExclusiveAmount'] = \
         df_minors_combined['ContractFolderStatus.ProcurementProjectLot.ProcurementProject.BudgetAmount.TaxExclusiveAmount'].apply(convert_to_object_array)
+        
+    df_minors_combined['origen'] = df_minors_combined['origen'].apply(convert_to_object_array)
 
     #import pdb; pdb.set_trace()
     logging.info("Guardando datos de contratos MENORES procesados...")
@@ -1471,6 +1474,8 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir):
         df_outsiders_all['ContractFolderStatus.TenderingProcess.ProcedureCode'].apply(eliminar_corchetes)
     df_outsiders_all['ContractFolderStatus.TenderingProcess.ProcedureCode'] = \
         df_outsiders_all['ContractFolderStatus.TenderingProcess.ProcedureCode'].apply(convert_to_object_array)
+    
+    df_outsiders_all['origen'] = df_outsiders_all['origen'].apply(convert_to_object_array)
     
     #import pdb; pdb.set_trace()
     df_outsiders_all.drop(columns=cols_drop, inplace=True, errors='ignore')
