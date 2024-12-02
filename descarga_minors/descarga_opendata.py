@@ -182,7 +182,7 @@ def download_all_contracts(destination_directory):
 
 def main():
     parser = argparse.ArgumentParser(description="Download minor contracts from various cities.")
-    parser.add_argument("city", choices=['zaragoza', 'madrid', 'gencat', 'all'], help="Specify the city for the download: zaragoza, madrid, gencat, or all")
+    parser.add_argument("--city", choices=['zaragoza', 'madrid', 'gencat', 'all'], help="Specify the city for the download: zaragoza, madrid, gencat, or all")
     parser.add_argument("--start_year", type=int, default=2018, help="Year from which to start downloads for Madrid")
     parser.add_argument("--file_path", help="Path to the file or directory to save the data", default="/export/usuarios_ml4ds/cggamella/sproc/DESCARGAS")
     args = parser.parse_args()
@@ -232,7 +232,7 @@ if __name__ == "__main__":
 # Además, para Madrid, puedes especificar el año inicial desde el que deseas comenzar las descargas.
 
 ### Ejemplos de Uso
-#Descargar contratos menores de Zaragoza y guardarlos en un archivo JSON:
+# Descargar contratos menores de Zaragoza y guardarlos en un archivo JSON:
 #python3 descarga_opendata.py zaragoza --ruta_archivo /path/to/contratos_menores_zaragoza.json
 
 # Descargar contratos menores de Zaragoza

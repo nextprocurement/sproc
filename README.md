@@ -29,6 +29,26 @@ The software can be exploited as a library or as *standalone* scripts.
 
 ### Scripts
 
+# Opendata integration with PLACE
+```bash
+pip install -r requirements.txt
+```
+
+## Inside script integracion_opendata.py
+
+STEP 1: Opendata download {Gencat, Madrid, Zaragoza}
+
+STEP 2: Integration with minors and outsiders
+
+## How to execute:
+
+```bash
+python3 integracion_opendata.py 
+--input_dir: 'path_to_save opendata and PLACE integrated files'
+--place_dir: 'path where data from PLACE is previously downloaded insiders, outsiders, minors' 
+--administration 'all' '-> also valid with zaragoza, madrid, gencat'
+```
+
 #### Downloading data
 
 `sproc_dl` command is the work-horse of the library. It allows
