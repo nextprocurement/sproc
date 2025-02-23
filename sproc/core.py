@@ -341,8 +341,16 @@ def dl(
         else:
             print(f"La columna '{col_obj}' no se está en el DataFrame. Pero la descarga se ha completado correctamente")
     
-    #import pdb; pdb.set_trace()
-    
+    # === To fix some erros that come from some of these field having NaN values in insiders / minors ===#    
+    if 'ContractFolderStatus_TenderingTerms_ProcurementNationalLegislationCode' in parquet_df.columns:
+        parquet_df["ContractFolderStatus_TenderingTerms_ProcurementNationalLegislationCode"] = (parquet_df["ContractFolderStatus_TenderingTerms_ProcurementNationalLegislationCode"]
+        .astype("string")
+        ) 
+    if 'ContractFolderStatus_TenderingTerms_FundingProgram' in parquet_df.columns:
+        parquet_df["ContractFolderStatus_TenderingTerms_FundingProgram"] = (parquet_df["ContractFolderStatus_TenderingTerms_FundingProgram"]
+        .astype("string")
+        ) 
+        
     print(parquet_df.columns)
     # parquet_df.to_parquet(output_file.with_stem('new'))
     parquet_df.to_parquet(output_file)

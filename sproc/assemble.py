@@ -32,21 +32,49 @@ def merge_deleted(
         return res
     
     # duplicates are dropped (by means of `deduplicate_deleted_series`), so is the `file name` index, and the result turned into a DataFrame
-    deduplicated_deleted_df = sproc.postprocess.deduplicate_deleted_series(deleted_series).droplevel(level=['zip', 'file name']).to_frame()
+    deduplicated_deleted_df = (
+        sproc.postprocess.deduplicate_deleted_series(deleted_series)
+        .droplevel(level=['zip', 'file name'])
+        .to_frame()
+    )
+    
     
     # if this is a column-multiindexed dataframe
-    if type(data_df.columns) == pd.MultiIndex:
-    
+    #if type(data_df.columns) == pd.MultiIndex:
         # in order to merge this new `pd.DataFrame` with `data_df` we need a *multiindex* for the former with the same number of levels as in the latter
-        deduplicated_deleted_df.columns = pd.MultiIndex.from_tuples([sproc.hier.pad_col_levels(data_df, ['deleted_on'])])
+    #    deduplicated_deleted_df.columns = pd.MultiIndex.from_tuples([sproc.#hier.pad_col_levels(data_df, ['deleted_on'])])
     
     # the `data_df` is (*left*-)joined with the new one yielding deleted entries; the result is a dataframe in which a new (flag) column `deleted_on`
     # was added; notice that `data_df`'s index is reset for easying the merge (assuming every contract
     # shows only once in `data_df`, *id* should still provide a unique index...though it probably doesn't matter anyway)
-    res = data_df.reset_index().set_index(['id']).merge(deduplicated_deleted_df, how='left', on=['id'])
+    
+    #res = data_df.reset_index().set_index(['id']).merge(deduplicated_deleted_df, how='left', on=['id'])
     
     # on return, the index is left as it was
-    return res.reset_index().set_index(['zip', 'file name', 'entry'])
+    #return res.reset_index().set_index(['zip', 'file name', 'entry'])
+    
+    # flatten multiIndex columns in deduplicated_deleted_df
+    if isinstance(deduplicated_deleted_df.columns, pd.MultiIndex):
+        deduplicated_deleted_df.columns = ['deleted_on']
+    
+    # make "id" a column in data_df  
+    data_df_flat = data_df.reset_index()
+    
+    if isinstance(data_df_flat.columns, pd.MultiIndex):
+        data_df_flat.columns = ['_'.join(col).strip('_') for col in data_df_flat.columns]
+    
+    data_df_flat["id"] = data_df_flat["id"].astype(str)
+    deduplicated_deleted_df.index = deduplicated_deleted_df.index.astype(str)
+    
+    res_flat = data_df_flat.merge(
+        deduplicated_deleted_df,  
+        how="left", 
+        left_on="id",  
+        right_index=True  
+    )
+    
+    return res_flat.set_index(["zip", "file name", "entry"])
+    
 
 # %% ../nbs/60_assemble.ipynb 30
 def parquet_amenable(
