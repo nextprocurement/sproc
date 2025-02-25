@@ -31,6 +31,13 @@ def merge_deleted(
 
         return res
     
+    # Save original MultiIndex structure (columns and index)
+    original_columns = data_df.columns if isinstance(data_df.columns, pd.MultiIndex) else None
+    original_index_names = data_df.index.names  # ["zip", "file name", "entry"]
+    
+    print(f"--- Original MultiIndex columns count: {len(original_columns) if original_columns is not None else 'None'}")
+
+    
     # duplicates are dropped (by means of `deduplicate_deleted_series`), so is the `file name` index, and the result turned into a DataFrame
     deduplicated_deleted_df = (
         sproc.postprocess.deduplicate_deleted_series(deleted_series)
@@ -52,30 +59,40 @@ def merge_deleted(
     
     # on return, the index is left as it was
     #return res.reset_index().set_index(['zip', 'file name', 'entry'])
+        
     
-    # flatten multiIndex columns in deduplicated_deleted_df
-    if isinstance(deduplicated_deleted_df.columns, pd.MultiIndex):
-        deduplicated_deleted_df.columns = ['deleted_on']
     
-    # make "id" a column in data_df  
     data_df_flat = data_df.reset_index()
-    
     if isinstance(data_df_flat.columns, pd.MultiIndex):
         data_df_flat.columns = ['_'.join(col).strip('_') for col in data_df_flat.columns]
     
+    # ensure same formatting
     data_df_flat["id"] = data_df_flat["id"].astype(str)
     deduplicated_deleted_df.index = deduplicated_deleted_df.index.astype(str)
-    
+        
     res_flat = data_df_flat.merge(
-        deduplicated_deleted_df,  
-        how="left", 
-        left_on="id",  
-        right_index=True  
+        deduplicated_deleted_df,
+        how="left",  
+        left_on="id",
+        right_index=True
     )
     
-    return res_flat.set_index(["zip", "file name", "entry"])
+    # Restore the original index structure
+    res_flat.set_index(original_index_names, inplace=True)
     
-
+    def pad_tuple(col_tuple): 
+        return col_tuple + ("",) * (original_columns.nlevels - len(col_tuple))
+    
+    # Convert flat column names back to tuples
+    columns_keep = [col for col in res_flat if col not in ["file name", "zip", "entry"]]
+    columns = [tuple(col.split("_")) for col in columns_keep if col != "deleted_on"]
+    columns = [pad_tuple(col) for col in columns]
+    deleted_on_tuple = tuple(["deleted_on"] + [""] * ( original_columns.nlevels - 1))  # Pad to match levels
+    columns = columns + [deleted_on_tuple] 
+    res_flat.columns = pd.MultiIndex.from_tuples(columns, names=original_columns.names)
+    
+    return res_flat
+        
 # %% ../nbs/60_assemble.ipynb 30
 def parquet_amenable(
     df: pd.DataFrame, # Input `DataFrame` to be "tuned" for parquet

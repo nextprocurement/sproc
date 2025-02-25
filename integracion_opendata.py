@@ -1,9 +1,12 @@
 from pathlib import Path
 from datetime import datetime
+import random
+import uuid
 from dateutil import parser
 import pandas as pd
 import numpy as np
 import argparse
+import string
 import sys
 import yaml
 import numbers
@@ -835,19 +838,25 @@ def process_madrid(df_minors_base, input_dir):
     #df_concatenado.to_parquet('/export/usuarios_ml4ds/cggamella/sproc/DESCARGAS/zgz_y_madrid.parquet')
             
     return df_concatenado
-               
-# Auxiliar functions for Gencat's Open Data integration
+
 def crear_indice_unico(row):
-    # Primeros 50 caracteres de 'title'
-    inicio_title = row['title'][:50]
-    # ContractFolderStatus.ContractFolderID
-    contract_folder_id = row['ContractFolderStatus.ContractFolderID']
-    # ContractFolderStatus.ProcurementProject.RealizedLocation.CountrySubentityCode
-    country_subentity_code = row['ContractFolderStatus.ProcurementProject.RealizedLocation.CountrySubentityCode']
-    nom = row['ContractFolderStatus.LocatedContractingParty.Party.PartyName.Name'][:50] if pd.notnull(row['ContractFolderStatus.LocatedContractingParty.Party.PartyName.Name']) else ""
-    # Concatenación de los componentes con el símbolo '&'
-    indice_unico = f"{inicio_title}&{contract_folder_id}&{country_subentity_code}&{nom}"
-    return indice_unico
+    # Use the first 50 characters of 'title' if it exists
+    if 'title' in row and pd.notnull(row['title']):
+        inicio_title = row['title'][:50]
+    else:
+        # Generate a unique random string combined with a UUID
+        random_part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=30))
+        unique_id = str(uuid.uuid4())[:20]  # First 20 chars of UUID
+        inicio_title = f"{random_part}_{unique_id}"  # Ensures uniqueness
+
+    contract_folder_id = row.get('ContractFolderStatus.ContractFolderID', 'UNKNOWN')
+    country_subentity_code = row.get('ContractFolderStatus.ProcurementProject.RealizedLocation.CountrySubentityCode', 'UNKNOWN')
+
+    nom = row.get('ContractFolderStatus.LocatedContractingParty.Party.PartyName.Name', '')
+    nom = nom[:50] if pd.notnull(nom) else ""
+
+    return f"{inicio_title}&{contract_folder_id}&{country_subentity_code}&{nom}"
+
 
 def crear_indice_unico_gencat(row):
     # Primeros 50 caracteres de 'objecte_contracte'
