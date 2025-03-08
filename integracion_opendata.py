@@ -24,9 +24,8 @@ from bs4 import BeautifulSoup
 
 # Logging configuration
 logging.basicConfig(
-    filename='app.log',  
-    filemode='a', 
-    level=logging.DEBUG,  
+    stream=sys.stdout,
+    level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s'  
 )
 
@@ -54,7 +53,7 @@ def download_contracts_gencat(domain, dataset_identifier, destination_directory,
         
         # Update total rows count
         total_rows += len(results)
-        print(f"Descargadas {total_rows} filas hasta ahora...")
+        logging.info(f"Descargadas {total_rows} filas hasta ahora...")
         
         # Increment offset for the next iteration
         offset += limit
@@ -69,7 +68,7 @@ def download_contracts_gencat(domain, dataset_identifier, destination_directory,
     # Guardar el DataFrame combinado en un archivo CSV
     file_path = os.path.join(destination_directory, file_name)
     full_df.to_csv(file_path, index=False)
-    print(f"Datos descargados y guardados en {file_path}")
+    logging.info(f"Datos descargados y guardados en {file_path}")
 
 # Auxiliary function to get contract IDs from Zaragoza's API
 def get_contract_ids(base_url, params):
@@ -82,7 +81,7 @@ def get_contract_ids(base_url, params):
         response = requests.get(base_url, params=params)
         # Check if the HTTP request was successful.
         if response.status_code != 200:
-            print(f"Error de solicitud: {response.status_code}")
+            logging.error(f"Error de solicitud: {response.status_code}")
             break
         
         # Parse JSON response and extend the contract list with new data.
@@ -91,7 +90,7 @@ def get_contract_ids(base_url, params):
         total_downloaded += len(data['result'])
         
         # Print the progress of downloaded contracts.
-        print(f"Descargados {total_downloaded} de {data['totalCount']} contracts.")
+        logging.info(f"Descargados {total_downloaded} de {data['totalCount']} contracts.")
         
         # Check if there are more pages of data to request.
         if params['start'] + params['rows'] < data['totalCount']:
@@ -113,16 +112,16 @@ def download_contracts_zaragoza(contract_ids, detail_url_template, file_path):
         if response.status_code == 200:
             contracts.append(response.json())
         else:
-            print(f"Error al obtener detalles del contrato {contract_id}: {response.status_code}")
+            logging.error(f"Error al obtener detalles del contrato {contract_id}: {response.status_code}")
         
         processed_contracts += 1
-        print(f"Procesado {processed_contracts}/{total_contracts} contratos.")
+        logging.info(f"Procesado {processed_contracts}/{total_contracts} contratos.")
     
     # Guardar los resultados en un archivo JSON
     with open(file_path, 'w', encoding='utf-8') as file:
         json.dump(contracts, file, ensure_ascii=False, indent=4)
     
-    print(f"Detalles de los contratos descargados y guardados en {file_path}")
+    logging.info(f"Detalles de los contratos descargados y guardados en {file_path}")
 
 def download_zaragoza_wrapper(base_url, params, detail_base_url, file_path):
     # Obtain the contract IDs first
@@ -159,7 +158,7 @@ def download_contracts_madrid(url, destination_directory, start_year,file_path):
                     file_path = os.path.join(destination_directory, file_name)
                     with open(file_path, 'wb') as file:
                         file.write(file_response.content)
-                    print(f"File {file_name} downloaded in {file_path}")
+                    logging.info(f"File {file_name} downloaded in {file_path}")
 
 def download_all_contracts(destination_directory):
     # Parámetros para cada conjunto de datos
@@ -201,7 +200,7 @@ def download_all_contracts(destination_directory):
     for dataset in datasets:
         func = dataset["func"]
         params = dataset["params"]
-        print(f"Descargando datos de {func.__name__}...")
+        logging.info(f"Descargando datos de {func.__name__}...")
         func(**params)
 
 
@@ -594,7 +593,7 @@ def process_zaragoza(df, df_minors):
     df_filtered = df[columns_to_keep]
     # Renombrar las columnas
     df_minors_zgz = df_filtered.rename(columns=mapeo_zgz)
-    print(f"Hay un total de {len(df_minors_zgz)} menores de ZARAGOZA")
+    logging.info(f"Hay un total de {len(df_minors_zgz)} menores de ZARAGOZA")
     if 'origen' not in df_minors.columns:
         df_minors['origen'] = 'minors_place'
     
@@ -666,7 +665,7 @@ def convert_to_float64(s):
             # Manejar otros tipos de datos si es necesario
             return np.nan
     except ValueError as e:
-        print(f"Error al convertir '{s}' a float64: {e}")
+        logging.error(f"Error al convertir '{s}' a float64: {e}")
         return np.nan
     
 # Función para convertir valores 'SI'/'NO' en un array de numpy con 'true'/'false'
@@ -711,7 +710,7 @@ def process_madrid(df_minors_base, input_dir):
         df_mad_19 = pd.read_excel(os.path.join(input_dir, '300253-9-contratos-actividad-menores.xlsx'), sheet_name=0, parse_dates=True)
         df_mad_18 = pd.read_excel(os.path.join(input_dir, '300253-1-contratos-actividad-menores.xlsx'), sheet_name=0, parse_dates=True)
     except Exception as e:
-        print(f"Error al leer los archivos de Madrid: {e}")
+        logging.error(f"Error al leer los archivos de Madrid: {e}")
         return None
 
     # Diccionarios de mapeo diferentes para cada subconjunto de datos
@@ -944,10 +943,10 @@ def reemplazar_valores_vacios(df, mapeo_gencat):
                 sustituciones[col_destino] += 1  
                 #print(f"Fila {index} | Columna '{col_destino}' | Valor original: {valor_destino} | Valor de reemplazo: {valor_origen}")
 
-    print("\nEstadísticas de Sustituciones:")
+    logging.info("\nEstadísticas de Sustituciones:")
     for col, count in sustituciones.items():
         if count > 0:
-            print(f"Columna '{col}': {count} sustituciones realizadas.")
+            logging.info(f"Columna '{col}': {count} sustituciones realizadas.")
 
     return df
 
@@ -1000,14 +999,38 @@ def procesar_datos_json(df_input, max_retries=3, delay_seconds=2):
     df = df_input.copy()
     failed_urls = []
     
+    url_cols = []
+    for col in df.columns:
+        if col.startswith('url'):
+            url_cols.append(col)
+    
+    logging.info(f"URL columns found: {url_cols}")
+
+    # Caching de URLs para evitar solicitudes duplicadas en url_json_agregada
+
+    url_cache = {}
+
     for index, row in df.iterrows():
+        # JLG identificar la columna con url valida
         # Verificar si la columna 'url_json_licitacio' es válida
-        if pd.isna(row['url_json_licitacio']) or row['url_json_licitacio'] == "":
-            continue      
+        # if pd.isna(row['url_json_licitacio']) or row['url_json_licitacio'] == "":
+        #     continue      
+        
+        valid_url_col = ''
+        for url_col in url_cols:
+            if pd.isna(row[url_col]) or row[url_col] == "" or 'url' not in row[url_col]:
+                continue
+            logging.info(f"Valid URL {row[url_col]} found in column '{url_col}'")
+            valid_url_col = url_col
+        if not valid_url_col:
+            logging.error(f"No valid URL found in row {index}")
+            continue
+        logging.info(f"Processing URL {row[valid_url_col]} found in column '{valid_url_col}'")        
+
         try:
-            entrada_dict = ast.literal_eval(row['url_json_licitacio'])
+            entrada_dict = ast.literal_eval(row[valid_url_col])
             if 'url' not in entrada_dict or not isinstance(entrada_dict['url'], str):
-                print("La entrada no contiene una 'url' válida o no es una cadena")
+                logging.warning("La entrada no contiene una 'url' válida o no es una cadena")
                 continue
             
             url = entrada_dict['url']
@@ -1016,11 +1039,18 @@ def procesar_datos_json(df_input, max_retries=3, delay_seconds=2):
 
             while attempts < max_retries and not success:
                 try:
-                    response = requests.get(url, timeout=10)
+                    if url in url_cache:
+                        response = url_cache[url]
+                        logging.info(f"URL {url}s found in cache")
+                    else:                       
+                        response = requests.get(url, timeout=10)
+                    
                     attempts += 1
 
                     if response.status_code == 200:
+                        url_cache[url] = response
                         datos = response.json()
+                        # Separamos bloques pro campo de input para evitar perder datos
                         try:
                             if datos['publicacio']['dadesPublicacio']['plecsDeClausulesAdministratives']['ca']:
                                 df.loc[index, 'ContractFolderStatus.LegalDocumentReference.ID'] = ', '.join([item.get('titol', '') for item in datos['publicacio']['dadesPublicacio']['plecsDeClausulesAdministratives']['ca']])
@@ -1028,7 +1058,13 @@ def procesar_datos_json(df_input, max_retries=3, delay_seconds=2):
                             else:
                                 df.loc[index, 'ContractFolderStatus.LegalDocumentReference.ID'] = None
                                 df.loc[index, 'ContractFolderStatus.LegalDocumentReference.Attachment.ExternalReference.URI'] = None
-
+                        except KeyError as e:
+                            logging.warning(f"KeyError encontrado: {e}")
+                            failed_urls.append({'url': url, 'error': str(e)})
+                            df.loc[index, 'error'] = str(e)
+                            success = True
+                        
+                        try:
                             # Concatenar todos los títulos y paths de 'plecsDePrescripcionsTecniques'
                             if datos['publicacio']['dadesPublicacio']['plecsDePrescripcionsTecniques']['ca']:
                                 df.loc[index, 'ContractFolderStatus.TechnicalDocumentReference.ID'] = ', '.join([item.get('titol', '') for item in datos['publicacio']['dadesPublicacio']['plecsDePrescripcionsTecniques']['ca']])
@@ -1038,26 +1074,32 @@ def procesar_datos_json(df_input, max_retries=3, delay_seconds=2):
                                 df.loc[index, 'ContractFolderStatus.TechnicalDocumentReference.Attachment.ExternalReference.URI'] = None
 
                             if df.loc[index, 'codi_dir3'] in [None, '', 'nan', 'NaN']:
-                                print("La columna contiene valores NaN, None, o vacíos-> Buscando en el JSON")
+                                logging.warning("La columna contiene valores NaN, None, o vacíos-> Buscando en el JSON")
                                 df.loc[index, 'ContractFolderStatus.LocatedContractingParty.Party.PartyIdentification.ID'] = datos['organ']['organContractacioId']      
+                        except KeyError as e:
+                            logging.warning(f"KeyError encontrado: {e}")
+                            failed_urls.append({'url': url, 'error': str(e)})
+                            df.loc[index, 'error'] = str(e)
+                            success = True
 
-                            df.loc[index, 'ContractFolderStatus.ProcurementProject.ContractExtension.OptionsDescription'] = str(datos['publicacio']['dadesPublicacio'].get('preveuenProrroguesAlsPlecs', ''))
-
-                            data_solvenciesEconomiques = []
-                            data_solvenciesTecniques = []
-                            data_condicioExecucio = []
-                            data_criterisAdjudicacio = []
-
+                        df.loc[index, 'ContractFolderStatus.ProcurementProject.ContractExtension.OptionsDescription'] = str(datos['publicacio']['dadesPublicacio'].get('preveuenProrroguesAlsPlecs', ''))
+                       
+                        data_solvenciesEconomiques = []
+                        data_solvenciesTecniques = []
+                        data_condicioExecucio = []
+                        data_criterisAdjudicacio = []                        
+                        
+                        try:
                             # Iterar sobre todos los lotes
                             for lot in datos['publicacio']['dadesPublicacioLot']:
                                 # Obtener solvenciesEconomiques del lote actual
                                 solvencies_economiques = lot.get('solvenciesEconomiques', [])
                                 for item in solvencies_economiques:
                                     data = {
-                                    'ContractFolderStatus.ProcurementProjectLot.TenderingTerms.TendererQualificationRequest.FinancialEvaluationCriteria.EvaluationCriteriaTypeCode': item.get('criteriSolvencia', {}).get('ca', ''),
-                                    'ContractFolderStatus.ProcurementProjectLot.TenderingTerms.TendererQualificationRequest.FinancialEvaluationCriteria.Description': item.get('descripcioCriteriSolvencia', {}).get('ca', ''),
-                                    'ContractFolderStatus.ProcurementProjectLot.TenderingTerms.TendererQualificationRequest.FinancialEvaluationCriteria.ThresholdQuantity': item.get('valorMinimExigit', {}).get('ca', '')
-                                    #'ContractFolderStatus.ProcurementProjectLot.TenderingTerms.TendererQualificationRequest.FinancialEvaluationCriteria.ThresholdQuantity': item.get('valorMinimExigit', {})
+                                        'ContractFolderStatus.ProcurementProjectLot.TenderingTerms.TendererQualificationRequest.FinancialEvaluationCriteria.EvaluationCriteriaTypeCode': item.get('criteriSolvencia', {}).get('ca', ''),
+                                        'ContractFolderStatus.ProcurementProjectLot.TenderingTerms.TendererQualificationRequest.FinancialEvaluationCriteria.Description': item.get('descripcioCriteriSolvencia', {}).get('ca', ''),
+                                        'ContractFolderStatus.ProcurementProjectLot.TenderingTerms.TendererQualificationRequest.FinancialEvaluationCriteria.ThresholdQuantity': item.get('valorMinimExigit', {}).get('ca', '')
+                                        #'ContractFolderStatus.ProcurementProjectLot.TenderingTerms.TendererQualificationRequest.FinancialEvaluationCriteria.ThresholdQuantity': item.get('valorMinimExigit', {})
                                     }
                                     data_solvenciesEconomiques.append(data)
 
@@ -1068,7 +1110,7 @@ def procesar_datos_json(df_input, max_retries=3, delay_seconds=2):
                                         concatenated_values = ', '.join([d[key] if d[key] else 'None' for d in data_solvenciesEconomiques])
                                         df.loc[index, key] = concatenated_values
                                 else:
-                                    print("No hay datos en data_solvenciesEconomiques para el índice", index)
+                                    logging.warning(f"No hay datos en data_solvenciesEconomiques para el índice {index}")
 
                                 # Obtener solvenciesTecniques del lote actual
                                 solvencies_tecniques = lot.get('solvenciesTecniques', [])
@@ -1087,10 +1129,10 @@ def procesar_datos_json(df_input, max_retries=3, delay_seconds=2):
                                         concatenated_values = ', '.join([str(d[key]) if d[key] else 'None' for d in data_solvenciesTecniques])
                                         df.loc[index, key] = concatenated_values
                                 else:
-                                    print("No hay datos en data_solvenciesTecniques para el índice", index)
+                                    logging.warning(f"No hay datos en data_solvenciesTecniques para el índice {index}")
 
                                 # Obtener condicionsExecucio del lote actual
-                                condicio_execucio = lot.get('condicionsExecucio')
+                                condicio_execucio = lot.get('condicionsExecucio', [])
 
                                 # Iterar sobre todos los lotes de 'solvenciesTecniques'
                                 for item in condicio_execucio:
@@ -1107,11 +1149,11 @@ def procesar_datos_json(df_input, max_retries=3, delay_seconds=2):
                                         concatenated_values = ', '.join([str(d[key]) if d[key] else 'None' for d in data_condicioExecucio])
                                         df.loc[index, key] = concatenated_values
                                 else:
-                                    print("No hay datos en data_condicioExecucio para el índice", index)
+                                    logging.warning(f"No hay datos en data_condicioExecucio para el índice {index}")
 
                                 ## XXXXXXXXX
                                 # Obtener criterisAdjudicacio del lote actual
-                                criteris_adjudicacio = lot.get('criterisAdjudicacio')
+                                criteris_adjudicacio = lot.get('criterisAdjudicacio', [])
 
                                 # Iterar sobre todos los lotes de 'solvenciesTecniques'
                                 for item in criteris_adjudicacio:
@@ -1129,28 +1171,28 @@ def procesar_datos_json(df_input, max_retries=3, delay_seconds=2):
                                         concatenated_values = ', '.join([str(d[key]) if d[key] else 'None' for d in data_criterisAdjudicacio])
                                         df.loc[index, key] = concatenated_values
                                 else:
-                                    print("No hay datos en data_criterisAdjudicacio para el índice", index)
+                                    logging.warning(f"No hay datos en data_criterisAdjudicacio para el índice {index}")
 
                             success = True
                             
                         except KeyError as e:
-                            print(f"KeyError encontrado: {e}")
+                            logging.error(f"KeyError encontrado: {e}")
                             failed_urls.append({'url': url, 'error': str(e)})
                             df.loc[index, 'error'] = str(e)
                             success = True
                     else:
-                        print(f"Respuesta HTTP no exitosa (Código {response.status_code}), reintentando...")
+                        logging.warning(f"Respuesta HTTP no exitosa (Código {response.status_code}), reintentando...")
                         time.sleep(delay_seconds)
 
                 except requests.exceptions.RequestException as e:
-                    print(f"Error en el intento {attempts}: {e}")
+                    logging.error(f"Error en el intento {attempts}: {e}")
                     if attempts >= max_retries:
                         df.loc[index, 'url_json_licitacio'] = 'Error tras varios intentos: ' + str(e)
                     time.sleep(delay_seconds)
 
         except (ValueError, SyntaxError) as e:
-            print(f"Error al evaluar la cadena JSON en el índice {index}: {e}")
-            df.loc[index, 'url_json_licitacio'] = 'Error al evaluar JSON'
+            logging.error(f"Error al evaluar la cadena JSON en el índice {index}: {e}")
+            df.loc[index, valid_url_col] = 'Error al evaluar JSON'
     
     #df_failed = pd.DataFrame(failed_urls)
     #df_failed.to_csv('failed_urls.csv', index=False)
@@ -1291,9 +1333,10 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir, input_csv=None)
     df_gencat['indice_unico'] = df_gencat.apply(crear_indice_unico_gencat, axis=1)
     df_gencat['indice_unico'] = df_gencat['indice_unico'].str.lower()
     
-    # Informativo: Estadísticas de valores en df_gencat
-    num_urls_vacias = df_gencat['url_json_licitacio'].isna().sum()
-    logging.info(f"Número de URLs vacías o NaN: {num_urls_vacias}")
+
+    # Informativo: Estadísticas de valores en df_gencat Obsoleto, considerar todas las urls
+    #num_urls_vacias = df_gencat['url_json_licitacio'].isna().sum()
+    #logging.info(f"Número de URLs (url_licitacio) vacías o NaN: {num_urls_vacias}")
     
     cols_to_group = ["identificacio_adjudicatari", "denominacio_adjudicatari", "import_adjudicacio_sense", "numero_lot",
                  "resultat", "pressupost_licitacio_sense", "descripcio_lot"]
@@ -1567,7 +1610,7 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir, input_csv=None)
     #columns_to_keep = [col for col in columns_keep if col in df_out_sustituido.columns]
     cols_drop = columns_to_drop + cols_drop_extra
     df_out_sustituido.drop(columns=cols_drop, inplace=True, errors='ignore')
-    logging.info(f"Las cols enriquecidas(gencat) de outsiders listas para concat: {df_out_sustituido.columns}")
+    logging.debug(f"Las cols enriquecidas(gencat) de outsiders listas para concat: {df_out_sustituido.columns}")
     
     # Combinar con df_outsiders_base 
     for df in [df_outsiders_base, df_out_sustituido]:
@@ -1591,7 +1634,7 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir, input_csv=None)
     df_outsiders_combined['ContractFolderStatus.TenderingProcess.ProcedureCode'] = \
         df_outsiders_combined['ContractFolderStatus.TenderingProcess.ProcedureCode'].apply(convert_to_object_array)
         
-    logging.info(f"Las COLUMAS SON: {df_outsiders_combined.columns.tolist()}")
+    logging.debug(f"Las COLUMNAS SON: {df_outsiders_combined.columns.tolist()}")
     
     # Guardar el DataFrame de contratos outsiders procesados
     #output_path_outsiders = os.path.join(input_dir, 'processed_gencat_outsiders_enriquecidos.parquet')
@@ -1607,7 +1650,7 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir, input_csv=None)
     df_out_no_coincidentes['origen'] = 'outsiders_gencat_opendata_no_match_place'    
     
     df_outsiders_all = pd.concat([df_outsiders_combined, df_out_no_coincidentes], ignore_index=True)
-    print(f"Total de contratos outsiders integrados: {df_outsiders_all.shape[0]} filas.")
+    logging.info(f"Total de contratos outsiders integrados: {df_outsiders_all.shape[0]} filas.")
     
     df_outsiders_all['ContractFolderStatus.TenderingProcess.ProcedureCode'] = \
         df_outsiders_all['ContractFolderStatus.TenderingProcess.ProcedureCode'].apply(substitute_contract_value)
@@ -1696,7 +1739,8 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir, input_csv=None)
     
       
 def main():
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(stream=sys.stdout, format='[%(asctime)s] %(levelname)s %(message)s', datefmt='%Y-%m-%d|%H:%M:%S')
+    # logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser(description='Procesa y añade datos abiertos de Zaragoza, Madrid y Gencat.')
     parser.add_argument('--input_dir', type=str, required=True, help='Directorio de entrada donde se descargará opendata Madrid(excel), Zgz(json) y Gencat(csv)')
     parser.add_argument('--administration', type=str, default='all', choices=['zaragoza', 'madrid', 'gencat', 'all'],
@@ -1725,18 +1769,17 @@ def main():
     if os.path.exists(minors_path):
         df_minors = pd.read_parquet(minors_path)
         df_minors.columns = [unify_colname(col) for col in df_minors.columns]
-        print(f"Datos de minors cargados desde {minors_path}")
+        logging.info(f"Datos de minors cargados desde {minors_path}")
     else:
-        print(f"No se encontró el archivo {minors_path}")
+        logging.info(f"No se encontró el archivo {minors_path}")
     if os.path.exists(outsiders_path):
         df_out = pd.read_parquet(outsiders_path)
         df_out.columns = [unify_colname(col) for col in df_out.columns]
-        print(f"Datos de outsiders cargados desde {outsiders_path}")
+        logging.info(f"Datos de outsiders cargados desde {outsiders_path}")
     else:
-        print(f"No se encontró el archivo {outsiders_path}")
-        ## JLG Create empty df_out as it is needed in process_gencat
-        df_out = pd.DataFrame()
-        ## JLG
+        logging.error(f"No se encontró el archivo {outsiders_path}")
+        logging.error("No se encontró datos de contratos outsiders en la carpeta de PLACE.")
+        sys.exit()
     
     # Paso 1: Descargar los datos opendata
     ## JLG avoid initial download is --no_download is set
