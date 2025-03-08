@@ -1264,13 +1264,20 @@ columns_keep = [
     'ContractFolderStatus.TenderResult.SMEAwardedIndicator'
 ]
 
-def process_gencat(df_minors_base, df_outsiders_base, input_dir):
+def process_gencat(df_minors_base, df_outsiders_base, input_dir, input_csv=None):
     """
     Procesa opendata de Gencat y los integra con subconjuntos de contratos menores y outsiders de PLACE.
     """
     # Cargar datos de Gencat
     # El archivo CSV tiene 'catalunya' en el nombre y está en input_dir
-    gencat_files = [f for f in os.listdir(input_dir) if 'catalunya' in f and f.endswith('.csv')]
+    if input_csv:
+        gencat_files = [input_csv]
+        output_prefix = input_csv.split('.')[0]
+        logging.info(f"Input from {input_csv}. Prefijo de salida: {output_prefix}")
+    else:
+        gencat_files = [f for f in os.listdir(input_dir) if 'catalunya' in f and f.endswith('.csv')]
+        output_prefix = None
+
     if not gencat_files:
         logging.info("No se encontró ningún archivo de Gencat con 'Catalunya' en el nombre. Añada y/o verifique el archivo CSV y vuelva a intentarlo.")
         return
@@ -1489,9 +1496,15 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir):
         df_minors_combined['ContractFolderStatus.ProcurementProject.TypeCode'].apply(convert_to_object_array)
     #import pdb; pdb.set_trace()
     logging.info("Guardando datos de contratos MENORES procesados...")
-    output_path_minors = os.path.join(input_dir, 'minors_completo.parquet')
-    df_minors_combined.to_parquet(output_path_minors, index=False)
-    #logging.info(f"Datos de contratos menores de Gencat procesados y guardados en {output_path_minors}")
+    if output_prefix:
+        output_path_minors = os.path.join(input_dir, f'{output_prefix}_minors_completo.parquet')
+    else:
+        output_path_minors = os.path.join(input_dir, 'minors_completo.parquet')
+    
+    df_minors_combined.to_json(output_path_minors + '.json', orient='records')
+    
+    ##df_minors_combined.to_parquet(output_path_minors, index=False)
+    logging.info(f"Datos de contratos menores de Gencat procesados y guardados en {output_path_minors}")
 
     # -----------------------------------------------------------------------------------
     # PROCESAMIENTO DE CONTRATOS OUTSIDERS 
@@ -1566,7 +1579,6 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir):
         
     df_out_sustituido['origen'] = 'outsiders_place_enrichment_gencat'
     
-        
     logging.info(f"Las columnas en df_outsiders_base son: {df_outsiders_base.columns.tolist()}")
     logging.info(f"Las columnas en df_out_sustituido son: {df_out_sustituido.columns.tolist()}")
     df_outsiders_combined = pd.concat([df_outsiders_base, df_out_sustituido], ignore_index=True)
@@ -1673,8 +1685,14 @@ def process_gencat(df_minors_base, df_outsiders_base, input_dir):
     df_outsiders_all.drop(columns=cols_drop, inplace=True, errors='ignore')
 
     # Guardar solo las columnas que se usarán
-    output_path_final = os.path.join(input_dir, 'outsiders_completo.parquet')
-    df_outsiders_all.to_parquet(output_path_final, index=False)
+    if output_prefix:
+        output_path_final = os.path.join(input_dir, f'{output_prefix}_outsiders_completo.parquet')
+    else:
+        output_path_final = os.path.join(input_dir, 'outsiders_completo.parquet')
+    
+    df_outsiders_all.to_json(output_path_final+'.json', orient='records')
+    logging.info(f"Datos de contratos outsiders de Gencat procesados y guardados en {output_path_final}")
+    #df_outsiders_all.to_parquet(output_path_final, index=False)
     
       
 def main():
@@ -1685,6 +1703,11 @@ def main():
                         help='Administración a procesar (zaragoza, madrid, gencat o all)')
     parser.add_argument('--place_dir', type=str, required=True, help='Directorio donde se encuentran datos PLACE {insiders, outsiders, minors}')
     parser.add_argument('--start_year', type=int, default=2018, help='Año desde el cual descargar datos de Madrid')
+    ## JLG
+    parser.add_argument('--no_download', action='store_true', help='Skip downloading. Use previous downloads')
+    parser.add_argument('--input_gencat_csv', help='Input file to use for gencat')
+    ## JLG
+    
     args = parser.parse_args()
     
     # Inicializar df
@@ -1711,9 +1734,14 @@ def main():
         print(f"Datos de outsiders cargados desde {outsiders_path}")
     else:
         print(f"No se encontró el archivo {outsiders_path}")
+        ## JLG Create empty df_out as it is needed in process_gencat
+        df_out = pd.DataFrame()
+        ## JLG
     
     # Paso 1: Descargar los datos opendata
-    if administration in ['zaragoza', 'madrid', 'gencat', 'all']:
+    ## JLG avoid initial download is --no_download is set
+    ## if administration in ['zaragoza', 'madrid', 'gencat', 'all']:
+    if not args.no_download and administration in ['zaragoza', 'madrid', 'gencat', 'all']:
         logging.info("Iniciando descarga de datos opendata...")
         if administration == 'all':
             download_all_contracts(input_dir)
@@ -1790,11 +1818,11 @@ def main():
     if administration in ['gencat', 'all']:
         logging.info("Comenzando el procesamiento e integración de datos de Gencat...")
         if administration == 'all':
-            process_gencat(df_minors_base, df_out, input_dir)
+            process_gencat(df_minors_base, df_out, input_dir, args.input_gencat_csv)
         elif administration == 'gencat':
             logging.info("Solo se procesarán e integrarán los datos de Gencat...")
             df_minors_base = df_minors.copy()
-            process_gencat(df_minors_base, df_out, input_dir)
+            process_gencat(df_minors_base, df_out, input_dir, args.input_gencat_csv)
         else:
             logging.info("NO HAY DATOS DE GENCAT.")
         
