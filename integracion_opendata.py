@@ -1009,12 +1009,24 @@ def procesar_datos_json(df_input, max_retries=3, delay_seconds=2):
     # Caching de URLs para evitar solicitudes duplicadas en url_json_agregada
 
     url_cache = {}
+    num_processed_urls = 0
+    empty_urls = 0
+    used_cache = 0
+    SLEEP_TIME = 5
+    GROUP_SIZE = 1000
 
     for index, row in df.iterrows():
+        
         # JLG identificar la columna con url valida
         # Verificar si la columna 'url_json_licitacio' es válida
         # if pd.isna(row['url_json_licitacio']) or row['url_json_licitacio'] == "":
-        #     continue      
+        #     continue 
+        logging.info(
+            f"Processing row {index} from {df.shape[0]} "
+            "(urls: {num_processed_urls} processed, {empty_urls} empty, {len(url_cache)} cached, "
+            "{used_cache/len(url_cache)*100}% used)"
+        )     
+        
         
         valid_url_col = ''
         for url_col in url_cols:
@@ -1024,6 +1036,7 @@ def procesar_datos_json(df_input, max_retries=3, delay_seconds=2):
             valid_url_col = url_col
         if not valid_url_col:
             logging.error(f"No valid URL found in row {index}")
+            empty_urls += 1
             continue
         logging.info(f"Processing URL {row[valid_url_col]} found in column '{valid_url_col}'")        
 
@@ -1042,15 +1055,21 @@ def procesar_datos_json(df_input, max_retries=3, delay_seconds=2):
                     if url in url_cache:
                         response = url_cache[url]
                         logging.info(f"URL {url}s found in cache")
+                        used_cache += 1
                     else:                       
-                        response = requests.get(url, timeout=10)
+                        num_processed_urls += 1
+                        #if num_processed_urls and num_processed_urls % GROUP_SIZE == 0:
+                        #    logging.info(f"Processed {num_processed_urls} URLs, sleeping for {SLEEP_TIME} seconds") 
+                        #    time.sleep(SLEEP_TIME)
+                        
+                        response = requests.get(url, timeout=10, stream=False)
                     
                     attempts += 1
 
                     if response.status_code == 200:
                         url_cache[url] = response
                         datos = response.json()
-                        # Separamos bloques pro campo de input para evitar perder datos
+                        # Separamos bloques por campo de input para evitar perder datos
                         try:
                             if datos['publicacio']['dadesPublicacio']['plecsDeClausulesAdministratives']['ca']:
                                 df.loc[index, 'ContractFolderStatus.LegalDocumentReference.ID'] = ', '.join([item.get('titol', '') for item in datos['publicacio']['dadesPublicacio']['plecsDeClausulesAdministratives']['ca']])
