@@ -132,3 +132,14 @@ newly downloaded *zip*,
     sproc_extend_parquet_with_zip.py 2018.parquet PlataformasAgregadasSinMenores_202201.zip 2018_202201.parquet
 
 The *combined* data was saved in `2018_202201.parquet`.
+
+---
+
+## Acknowledgements
+
+This work has received funding from the NextProcurement European Action (grant agreement INEA/CEF/ICT/A2020/2373713-Action 2020-ES-IA-0255).
+
+<p align="center">
+  <img src="static/Images/eu-logo.svg" alt="EU Logo" height=100 width=200>
+  <img src="static/Images/nextprocurement-logo.png" alt="Next Procurement Logo" height=100 width=200>
+</p>
